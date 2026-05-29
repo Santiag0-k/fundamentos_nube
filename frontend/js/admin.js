@@ -396,9 +396,13 @@ function actualizarInstructor(e) {
     .finally(function() { btn.disabled = false; });
 }
 function eliminarInstructor(id) {
+  console.log('[CEA] eliminarInstructor — id:', id);
   CEAConfirm('¿Deseas eliminar este instructor? Esta acción no se puede deshacer.', function() {
-    API.del('/instructor/' + id).then(function() { notify('Instructor eliminado', 'success'); loadInstructores(); })
-      .catch(function(e) { notify(e.message, 'error'); });
+    console.log('[CEA] DELETE /instructor/' + id);
+    notify('Eliminando instructor...', 'info');
+    API.del('/instructor/' + id)
+      .then(function() { console.log('[CEA] Instructor eliminado OK'); notify('Instructor eliminado', 'success'); loadInstructores(); })
+      .catch(function(e) { console.error('[CEA] Error al eliminar instructor:', e); notify(e.message, 'error'); });
   });
 }
 
@@ -438,9 +442,13 @@ function actualizarCliente(e) {
     .finally(function() { btn.disabled = false; });
 }
 function eliminarCliente(id) {
+  console.log('[CEA] eliminarCliente — id:', id);
   CEAConfirm('¿Deseas eliminar este cliente? Se perderán todos sus datos registrados.', function() {
-    API.del('/cliente/' + id).then(function() { notify('Cliente eliminado', 'success'); loadClientes(); })
-      .catch(function(e) { notify(e.message, 'error'); });
+    console.log('[CEA] DELETE /cliente/' + id);
+    notify('Eliminando cliente...', 'info');
+    API.del('/cliente/' + id)
+      .then(function() { console.log('[CEA] Cliente eliminado OK'); notify('Cliente eliminado', 'success'); loadClientes(); })
+      .catch(function(e) { console.error('[CEA] Error al eliminar cliente:', e); notify(e.message, 'error'); });
   });
 }
 
@@ -487,9 +495,13 @@ function actualizarVehiculo(e) {
     .finally(function() { btn.disabled = false; });
 }
 function eliminarVehiculo(id) {
+  console.log('[CEA] eliminarVehiculo — id:', id);
   CEAConfirm('¿Deseas eliminar este vehículo del registro?', function() {
-    API.del('/vehiculo/' + id).then(function() { notify('Vehículo eliminado', 'success'); loadVehiculos(); })
-      .catch(function(e) { notify(e.message, 'error'); });
+    console.log('[CEA] DELETE /vehiculo/' + id);
+    notify('Eliminando vehículo...', 'info');
+    API.del('/vehiculo/' + id)
+      .then(function() { console.log('[CEA] Vehículo eliminado OK'); notify('Vehículo eliminado', 'success'); loadVehiculos(); })
+      .catch(function(e) { console.error('[CEA] Error al eliminar vehículo:', e); notify(e.message, 'error'); });
   });
 }
 
@@ -529,9 +541,13 @@ function actualizarCategoria(e) {
     .finally(function() { btn.disabled = false; });
 }
 function eliminarCategoria(id) {
+  console.log('[CEA] eliminarCategoria — id:', id);
   CEAConfirm('¿Deseas eliminar esta categoría? Los matriculados asociados quedarán sin categoría.', function() {
-    API.del('/categoria/' + id).then(function() { notify('Categoría eliminada', 'success'); loadCategorias(); })
-      .catch(function(e) { notify(e.message, 'error'); });
+    console.log('[CEA] DELETE /categoria/' + id);
+    notify('Eliminando categoría...', 'info');
+    API.del('/categoria/' + id)
+      .then(function() { console.log('[CEA] Categoría eliminada OK'); notify('Categoría eliminada', 'success'); loadCategorias(); })
+      .catch(function(e) { console.error('[CEA] Error al eliminar categoría:', e); notify(e.message, 'error'); });
   }, { title: '¿Eliminar categoría?' });
 }
 
@@ -603,9 +619,13 @@ function actualizarMatriculado(e) {
     .finally(function() { btn.disabled = false; });
 }
 function eliminarMatriculado(id) {
+  console.log('[CEA] eliminarMatriculado — id:', id);
   CEAConfirm('¿Deseas eliminar esta matrícula? El historial de clases no se eliminará.', function() {
-    API.del('/matriculados/' + id).then(function() { notify('Matrícula eliminada', 'success'); loadMatriculados(); })
-      .catch(function(e) { notify(e.message, 'error'); });
+    console.log('[CEA] DELETE /matriculados/' + id);
+    notify('Eliminando matrícula...', 'info');
+    API.del('/matriculados/' + id)
+      .then(function() { console.log('[CEA] Matrícula eliminada OK'); notify('Matrícula eliminada', 'success'); loadMatriculados(); })
+      .catch(function(e) { console.error('[CEA] Error al eliminar matrícula:', e); notify(e.message, 'error'); });
   }, { title: '¿Eliminar matrícula?' });
 }
 
@@ -670,9 +690,13 @@ function crearClasePractica(e) {
     .finally(function() { btn.disabled = false; });
 }
 function eliminarClasePractica(id) {
+  console.log('[CEA] eliminarClasePractica — id:', id);
   CEAConfirm('¿Deseas eliminar esta clase práctica del registro?', function() {
-    API.del('/clase-practica/' + id).then(function() { notify('Clase práctica eliminada', 'success'); loadClasePractica(); })
-      .catch(function(e) { notify(e.message, 'error'); });
+    console.log('[CEA] DELETE /clase-practica/' + id);
+    notify('Eliminando clase práctica...', 'info');
+    API.del('/clase-practica/' + id)
+      .then(function() { console.log('[CEA] Clase práctica eliminada OK'); notify('Clase práctica eliminada', 'success'); loadClasePractica(); })
+      .catch(function(e) { console.error('[CEA] Error al eliminar clase práctica:', e); notify(e.message, 'error'); });
   });
 }
 
@@ -713,9 +737,13 @@ function crearClaseTeorica(e) {
     .finally(function() { btn.disabled = false; });
 }
 function eliminarClaseTeorica(id) {
+  console.log('[CEA] eliminarClaseTeorica — id:', id);
   CEAConfirm('¿Deseas eliminar esta clase teórica del registro?', function() {
-    API.del('/claseteorica/' + id).then(function() { notify('Clase teórica eliminada', 'success'); loadClaseTeorica(); })
-      .catch(function(e) { notify(e.message, 'error'); });
+    console.log('[CEA] DELETE /claseteorica/' + id);
+    notify('Eliminando clase teórica...', 'info');
+    API.del('/claseteorica/' + id)
+      .then(function() { console.log('[CEA] Clase teórica eliminada OK'); notify('Clase teórica eliminada', 'success'); loadClaseTeorica(); })
+      .catch(function(e) { console.error('[CEA] Error al eliminar clase teórica:', e); notify(e.message, 'error'); });
   });
 }
 
@@ -758,9 +786,13 @@ function crearExamenPractico(e) {
     .finally(function() { btn.disabled = false; });
 }
 function eliminarExamenPractico(id) {
+  console.log('[CEA] eliminarExamenPractico — id:', id);
   CEAConfirm('¿Deseas eliminar este examen práctico del registro?', function() {
-    API.del('/examen-practico/' + id).then(function() { notify('Examen eliminado', 'success'); loadExamenPractico(); })
-      .catch(function(e) { notify(e.message, 'error'); });
+    console.log('[CEA] DELETE /examen-practico/' + id);
+    notify('Eliminando examen práctico...', 'info');
+    API.del('/examen-practico/' + id)
+      .then(function() { console.log('[CEA] Examen práctico eliminado OK'); notify('Examen práctico eliminado', 'success'); loadExamenPractico(); })
+      .catch(function(e) { console.error('[CEA] Error al eliminar examen práctico:', e); notify(e.message, 'error'); });
   });
 }
 
@@ -800,9 +832,13 @@ function crearExamenTeorico(e) {
     .finally(function() { btn.disabled = false; });
 }
 function eliminarExamenTeorico(id) {
+  console.log('[CEA] eliminarExamenTeorico — id:', id);
   CEAConfirm('¿Deseas eliminar este examen teórico del registro?', function() {
-    API.del('/examen-teorico/' + id).then(function() { notify('Examen eliminado', 'success'); loadExamenTeorico(); })
-      .catch(function(e) { notify(e.message, 'error'); });
+    console.log('[CEA] DELETE /examen-teorico/' + id);
+    notify('Eliminando examen teórico...', 'info');
+    API.del('/examen-teorico/' + id)
+      .then(function() { console.log('[CEA] Examen teórico eliminado OK'); notify('Examen teórico eliminado', 'success'); loadExamenTeorico(); })
+      .catch(function(e) { console.error('[CEA] Error al eliminar examen teórico:', e); notify(e.message, 'error'); });
   });
 }
 
@@ -1005,8 +1041,15 @@ function verProgreso() {
 document.addEventListener('DOMContentLoaded', function() {
   // Modal confirm
   document.getElementById('cea-modal-ok').addEventListener('click', function() {
+    var cb = _modalCb;          // guardar ANTES de _modalClose (que lo pone a null)
+    console.log('[CEA] Modal OK — callback guardado:', typeof cb);
     _modalClose();
-    if (_modalCb) _modalCb();
+    if (cb) {
+      console.log('[CEA] Ejecutando callback de confirmación...');
+      cb();
+    } else {
+      console.warn('[CEA] No había callback registrado');
+    }
   });
   document.getElementById('cea-modal-cancel').addEventListener('click', _modalClose);
   document.getElementById('cea-modal-overlay').addEventListener('click', function(e) {
