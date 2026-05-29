@@ -1,117 +1,183 @@
 # CEA Instituto de Movilidad
 
-Sistema de gestión académica para escuela de conducción. Arquitectura serverless en AWS con frontend estático en S3/CloudFront, API en Lambda + API Gateway y base de datos en DynamoDB.
+Sistema de gestión académica para escuela de conducción. Arquitectura serverless en AWS: frontend estático en S3, cuatro funciones Lambda detrás de API Gateway y base de datos en DynamoDB.
 
 ---
 
-## URLs de producción
+## Acceso al sistema
 
-| Recurso | URL |
-|---------|-----|
-| Frontend (CloudFront) | https://d22bmgt5msul47.cloudfront.net |
-| Frontend (S3 directo) | http://cea-frontend-638515252962.s3-website-us-east-1.amazonaws.com |
-| API Gateway | https://5lsnngszz1.execute-api.us-east-1.amazonaws.com/Prod/ |
-| API health check | https://5lsnngszz1.execute-api.us-east-1.amazonaws.com/Prod/health |
+| | URL |
+|---|---|
+| **Panel administrativo** | http://cea-frontend-638515252962.s3-website-us-east-1.amazonaws.com/login.html |
+| **API (health check)** | https://h0x7ze5vzb.execute-api.us-east-1.amazonaws.com/Prod/health |
 
-**Credenciales de acceso al panel:** usuario `admin` / contraseña `admin`
+**Credenciales:** `admin` / `admin`
+
+---
+
+## Arquitectura en AWS
+
+```
+Usuario
+  │
+  ├─► S3 (frontend estático)
+  │     frontend/ → s3://cea-frontend-638515252962
+  │
+  └─► API Gateway → https://h0x7ze5vzb.execute-api.us-east-1.amazonaws.com/Prod/
+        │
+        ├─► Lambda  cea-auth     → /health, /auth/login
+        ├─► Lambda  cea-core     → /instructor, /cliente, /vehiculo, /categoria
+        ├─► Lambda  cea-acad     → /matriculados, /clase-practica, /claseteorica,
+        │                          /examen-practico, /examen-teorico, /progreso
+        └─► Lambda  cea-reports  → /reportes/gerencia, /reportes/*/pdf,
+                                   /examen-practico-aprobado, /examen-practico-reprobado
+              │
+              └─► (todas las Lambdas usan)
+                    Layer cea-shared  → db.py + utils.py (código compartido)
+                    DynamoDB cea-records  → PK: resource, SK: id
+                    DynamoDB cea-users    → PK: username
+```
+
+### Recursos en producción
+
+| Recurso | Nombre / ID |
+|---|---|
+| CloudFormation Stack | `cea-serverless` |
+| S3 Frontend | `cea-frontend-638515252962` |
+| API Gateway | `https://h0x7ze5vzb.execute-api.us-east-1.amazonaws.com/Prod/` |
+| Lambda | `cea-auth`, `cea-core`, `cea-acad`, `cea-reports` |
+| Lambda Layer | `cea-shared` |
+| DynamoDB | `cea-records`, `cea-users` |
+| Región | `us-east-1` |
+| Cuenta AWS | `638515252962` |
 
 ---
 
 ## Estructura del proyecto
 
 ```
-CEA/
+fundamentos_nube/
+│
 ├── backend/
-│   ├── handler.py          Enrutador HTTP — todas las rutas de la API
-│   ├── db.py               Cliente DynamoDB (CRUD genérico)
-│   ├── report_service.py   Generación de PDFs con ReportLab
-│   └── requirements.txt    boto3, reportlab
+│   ├── auth/
+│   │   └── handler.py          Lambda de autenticación (/health, /auth/login)
+│   ├── core/
+│   │   └── handler.py          Lambda CRUD base (instructor, cliente, vehiculo, categoria)
+│   ├── acad/
+│   │   └── handler.py          Lambda académica (matriculados, clases, exámenes, progreso)
+│   ├── reports/
+│   │   ├── handler.py          Lambda de reportes (PDF gerencia, PDF agenda, consultas)
+│   │   ├── report_service.py   Generación de PDFs con ReportLab
+│   │   └── requirements.txt    reportlab (dependencias extras de esta Lambda)
+│   └── shared/
+│       └── python/
+│           ├── db.py           Cliente DynamoDB compartido (CRUD genérico)
+│           └── utils.py        Helpers HTTP (parse_body, resp_json, resp_cors)
 │
 ├── frontend/
-│   ├── index.html          Landing page pública (Material Design 3)
-│   ├── login.html          Acceso al panel administrativo
-│   ├── admin.html          Panel CRUD completo
+│   ├── index.html              Landing page pública
+│   ├── login.html              Pantalla de acceso al panel
+│   ├── admin.html              Panel administrativo (CRUD completo)
 │   ├── css/
-│   │   ├── style.css           Tokens y componentes MD3
-│   │   ├── login.css           Estilos de la pantalla de login
+│   │   ├── style.css           Estilos globales (Material Design 3)
+│   │   ├── login.css           Estilos de login
 │   │   └── admin-dashboard.css Layout del panel admin
-│   ├── js/
-│   │   ├── config.js       URL base de la API (cambiar según entorno)
-│   │   ├── api.js          Cliente HTTP centralizado (fetch + PDF download)
-│   │   ├── admin.js        Lógica CRUD del panel
-│   │   ├── api-base.js     Interceptor de URLs legacy
-│   │   ├── login.js        Autenticación (referencia, no usado en nuevo login)
-│   │   └── notify.js       Sistema de notificaciones toast
-│   └── img/
-│       ├── carousel-bg-1.jpg / carousel-bg-2.jpg
-│       ├── carousel-1.png  / carousel-2.png
-│       ├── about.jpg
-│       └── logo.png
+│   └── js/
+│       ├── config.js           URL base de la API (cambiar según entorno)
+│       ├── api-base.js         Lee config.js y establece window.CEA_API_BASE
+│       ├── api.js              Cliente HTTP (GET, POST, PUT, DELETE, PDF)
+│       ├── admin.js            Toda la lógica CRUD del panel
+│       ├── login.js            Lógica de autenticación
+│       └── notify.js           Notificaciones toast
 │
 ├── infra/
-│   ├── template.yaml       SAM template (Lambda + API Gateway + DynamoDB)
-│   └── samconfig.toml      Configuración de deploy (stack, región, flags)
+│   ├── template.yaml           SAM template: define las 4 Lambdas, API Gateway, DynamoDB
+│   └── samconfig.toml          Configuración de deploy (stack, región)
 │
 ├── scripts/
-│   ├── start-local.ps1     Levanta DynamoDB local en Docker + crea tablas
-│   ├── seed.py             Script para poblar datos de prueba
-│   └── env-local.json      Variables de entorno para SAM local
+│   ├── start-local.ps1         Levanta DynamoDB local en Docker y crea tablas + usuario admin
+│   ├── seed.py                 Puebla DynamoDB con datos de prueba (40 clientes, 8 instructores, etc.)
+│   └── env-local.json          Variables de entorno para SAM local
 │
-├── events/                 Eventos JSON para `sam local invoke`
-└── INFRA.md                Diagrama ASCII de infraestructura completo
+└── events/                     Eventos JSON de ejemplo para probar Lambdas localmente
 ```
 
 ---
 
-## Infraestructura AWS
+## Rutas de la API
 
-| Recurso | Nombre | Detalles |
-|---------|--------|----------|
-| Lambda | `cea-serverless-ApiFunction` | Python 3.12, 256 MB, timeout 30s |
-| API Gateway | `cea-serverless` | REST API, stage Prod |
-| DynamoDB | `cea-records` | PK: resource (HASH), SK: id (RANGE) |
-| DynamoDB | `cea-users` | PK: username (HASH) |
-| S3 | `cea-frontend-638515252962` | Sitio web estático |
-| CloudFront | `E2SREAR6IFYOLZ` | CDN global, HTTPS |
-| SAM Source | `aws-sam-cli-managed-default-samclisourcebucket-kedwa9b5ym99` | Artefactos de deploy |
+| Método | Ruta | Lambda | Descripción |
+|---|---|---|---|
+| GET | `/health` | cea-auth | Health check |
+| POST | `/auth/login` | cea-auth | Autenticación |
+| GET/POST | `/{recurso}` | cea-core / cea-acad | Listar o crear registros |
+| GET/PUT/DELETE | `/{recurso}/{id}` | cea-core / cea-acad | Obtener, actualizar o eliminar |
+| GET | `/matriculados/{id}/progreso` | cea-acad | Progreso académico del estudiante |
+| POST | `/clase-practica/agregar` | cea-acad | Agregar clase práctica |
+| POST | `/claseteorica/Agregar` | cea-acad | Agregar clase teórica |
+| POST | `/examen-practico/agregar` | cea-acad | Registrar examen práctico |
+| POST | `/examen-teorico/agregar` | cea-acad | Registrar examen teórico |
+| GET | `/reportes/gerencia` | cea-reports | KPIs y finanzas en JSON |
+| GET | `/reportes/gerencia/pdf` | cea-reports | PDF del informe gerencial |
+| GET | `/reportes/calendario/matriculado/{id}/pdf` | cea-reports | PDF de agenda del estudiante |
+| GET | `/examen-practico-aprobado` | cea-reports | Lista de aprobados en examen práctico |
+| GET | `/examen-practico-reprobado` | cea-reports | Lista de reprobados en examen práctico |
+
+**Recursos CRUD disponibles:** `instructor`, `cliente`, `vehiculo`, `categoria`, `matriculados`, `clase-practica`, `claseteorica`, `examen-practico`, `examen-teorico`
+
+---
+
+## Cómo funciona el deploy
+
+El proyecto usa **AWS SAM** para gestionar toda la infraestructura backend como código. Al hacer `sam deploy`, SAM:
+1. Empaqueta cada Lambda con su código.
+2. Sube los artefactos a un bucket S3 temporal.
+3. Ejecuta un `aws cloudformation deploy` con el `template.yaml`.
+4. API Gateway y DynamoDB quedan actualizados automáticamente.
+
+El frontend es HTML/CSS/JS puro — se sube directamente a S3 con `aws s3 sync`.
 
 ---
 
 ## Requisitos previos
 
-Instalar una sola vez antes de empezar.
+Instalar una sola vez antes de empezar a desarrollar localmente.
 
 ### 1. Docker Desktop
-Necesario para DynamoDB local y SAM local.
-- Descargar: https://www.docker.com/products/docker-desktop/
-- Verificar: `docker --version`
+Necesario para correr DynamoDB local.
+```powershell
+# Descargar desde https://www.docker.com/products/docker-desktop/
+docker --version  # verificar
+```
 
 ### 2. Python 3.12
-- Instalar con winget (si no está):
-  ```powershell
-  winget install --id Python.Python.3.12
-  ```
-- Verificar: `python --version`
+```powershell
+winget install --id Python.Python.3.12
+python --version  # verificar
+```
 
 ### 3. AWS SAM CLI
 ```powershell
 pip install aws-sam-cli
+sam --version  # verificar
 ```
-- Verificar: `sam --version`
 
 ### 4. AWS CLI v2
-- Descargar: https://aws.amazon.com/cli/
-- Verificar: `aws --version`
+```powershell
+# Descargar desde https://aws.amazon.com/cli/
+aws --version  # verificar
+```
 
 ### 5. Credenciales AWS
 ```powershell
 aws configure
-# AWS Access Key ID: <tu-access-key>
-# AWS Secret Access Key: <tu-secret-key>
-# Default region name: us-east-1
-# Default output format: json
+# Access Key ID:     <tu-access-key>
+# Secret Access Key: <tu-secret-key>
+# Default region:    us-east-1
+# Output format:     json
+
+aws sts get-caller-identity  # verificar
 ```
-- Verificar: `aws sts get-caller-identity`
 
 ### 6. Política de ejecución PowerShell (solo la primera vez)
 ```powershell
@@ -120,19 +186,15 @@ Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ---
 
-## Entorno local de desarrollo
+## Desarrollo local
 
-Abre **tres terminales** de PowerShell en la carpeta del proyecto.
+Abre **tres terminales** de PowerShell en la carpeta raíz del proyecto.
 
 ### Terminal 1 — DynamoDB local
 ```powershell
 .\scripts\start-local.ps1
 ```
-Esto:
-- Crea la red Docker `cea-local`
-- Levanta `amazon/dynamodb-local` en el puerto `8000`
-- Crea las tablas `cea-records` y `cea-users`
-- Crea el usuario `admin` / `admin`
+Esto levanta DynamoDB en Docker (puerto 8000), crea las tablas y el usuario `admin`.
 
 ### Terminal 2 — API Lambda local
 ```powershell
@@ -153,142 +215,94 @@ http://localhost:3000/login.html
 ```
 Usuario: `admin` | Contraseña: `admin`
 
-> Si necesitas apuntar el frontend a un API diferente, pasa el parámetro en la URL:
+> Para apuntar el frontend a una API diferente, pasa el parámetro en la URL:
 > `http://localhost:3000/login.html?api=http://localhost:3001`
 
 ---
 
-## Deploy a AWS (producción)
+## Deploy a producción
+
+### Backend (cuando cambias código Python o el template.yaml)
+
+```powershell
+cd infra
+sam build --parallel
+sam deploy --stack-name cea-serverless --region us-east-1 --capabilities CAPABILITY_IAM --resolve-s3 --no-confirm-changeset
+```
+
+### Frontend (cuando cambias HTML, CSS o JS)
+
+```powershell
+aws s3 sync frontend/ s3://cea-frontend-638515252962 --delete
+```
 
 ### Deploy completo (backend + frontend)
 
 ```powershell
-# 1. Compilar y subir Lambda
 cd infra
-sam build
-sam deploy
-
-# 2. Subir frontend a S3
+sam build --parallel
+sam deploy --stack-name cea-serverless --region us-east-1 --capabilities CAPABILITY_IAM --resolve-s3 --no-confirm-changeset
 cd ..
-aws s3 sync frontend s3://cea-frontend-638515252962 --delete --exclude "*.md" --cache-control "max-age=300"
-
-# 3. Invalidar caché de CloudFront (cambios inmediatos)
-aws cloudfront create-invalidation --distribution-id E2SREAR6IFYOLZ --paths "/*"
-```
-
-### Solo backend (sin cambios en frontend)
-```powershell
-cd infra
-sam build
-sam deploy
-```
-
-### Solo frontend (sin cambios en Lambda)
-```powershell
-aws s3 sync frontend s3://cea-frontend-638515252962 --delete --exclude "*.md" --cache-control "max-age=300"
-aws cloudfront create-invalidation --distribution-id E2SREAR6IFYOLZ --paths "/*"
+aws s3 sync frontend/ s3://cea-frontend-638515252962 --delete
 ```
 
 ### Verificar que el deploy quedó bien
-```powershell
-# API respondiendo
-Invoke-WebRequest "https://5lsnngszz1.execute-api.us-east-1.amazonaws.com/Prod/health" -UseBasicParsing
 
-# Ver estado de la invalidación CloudFront
-aws cloudfront list-invalidations --distribution-id E2SREAR6IFYOLZ --query "InvalidationList.Items[0]" --output table
+```powershell
+# La API debe responder con {"status": "ok"}
+Invoke-RestMethod "https://h0x7ze5vzb.execute-api.us-east-1.amazonaws.com/Prod/health"
+
+# El frontend debe cargar en el navegador
+Start-Process "http://cea-frontend-638515252962.s3-website-us-east-1.amazonaws.com/login.html"
 ```
+
+### Poblar datos de prueba (solo la primera vez o para resetear)
+
+```powershell
+python scripts/seed.py
+```
+Crea: 1 admin, 6 categorías, 40 clientes, 8 instructores, 8 vehículos, 20 matriculados, 25 clases prácticas, 20 clases teóricas, 18 exámenes prácticos, 18 exámenes teóricos.
 
 ---
 
 ## Cambiar la URL de la API
 
-Editar `frontend/js/config.js`:
+Si necesitas apuntar el frontend a otro entorno, edita [frontend/js/config.js](frontend/js/config.js):
 
 ```js
-// Producción (por defecto)
-window.__API_BASE__ = "https://5lsnngszz1.execute-api.us-east-1.amazonaws.com/Prod";
+// Producción (valor actual)
+window.__API_BASE__ = "https://h0x7ze5vzb.execute-api.us-east-1.amazonaws.com/Prod";
 
 // Local
 window.__API_BASE__ = "http://localhost:3001";
 ```
 
-Después de cambiar a local, volver a poner la URL de producción antes de hacer deploy.
-
----
-
-## Rutas de la API
-
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| GET | `/health` | Health check |
-| POST | `/auth/login` | Autenticación |
-| GET | `/{resource}` | Listar registros |
-| POST | `/{resource}` | Crear registro |
-| GET | `/{resource}/{id}` | Obtener uno |
-| PUT | `/{resource}/{id}` | Actualizar |
-| DELETE | `/{resource}/{id}` | Eliminar |
-| GET | `/reportes/gerencia` | Datos JSON del informe |
-| GET | `/reportes/gerencia/pdf` | PDF informe gerencial |
-| GET | `/reportes/calendario/matriculado/{id}/pdf` | PDF agenda del estudiante |
-| GET | `/examen-practico-aprobado` | Consulta exámenes aprobados |
-| GET | `/examen-practico-reprobado` | Consulta exámenes reprobados |
-
-**Recursos disponibles:** `instructor`, `cliente`, `vehiculo`, `categoria`, `matriculados`, `clase-practica`, `claseteorica`, `examen-practico`, `examen-teorico`
-
-### Rutas legacy (POST directo con ruta específica)
-| Ruta | Recurso destino |
-|------|----------------|
-| `/clase-practica/agregar` | `clase-practica` |
-| `/claseteorica/Agregar` | `claseteorica` |
-| `/examen-practico/agregar` | `examen-practico` |
-| `/examen-teorico/agregar` | `examen-teorico` |
+Después de cambiar, volver a poner la URL de producción antes de hacer `aws s3 sync`.
 
 ---
 
 ## Stack tecnológico
 
-| Capa | Tecnología | Versión |
-|------|-----------|---------|
-| Frontend | HTML + CSS (Material Design 3) + JavaScript Vanilla | — |
-| Backend | Python | 3.12 |
-| IaC | AWS SAM / CloudFormation | 2.x |
-| Compute | AWS Lambda | — |
-| API | AWS API Gateway REST | — |
-| Base de datos | AWS DynamoDB | PAY_PER_REQUEST |
-| CDN | AWS CloudFront | — |
-| Storage | AWS S3 | — |
-| PDF | ReportLab | 4.2.2 |
-| Íconos | Material Symbols Rounded (Google Fonts) | — |
-| AWS SDK | boto3 | ≥1.34 |
+| Capa | Tecnología |
+|---|---|
+| Frontend | HTML + CSS (Material Design 3) + JavaScript Vanilla |
+| Backend | Python 3.12 (AWS Lambda) |
+| Infraestructura como código | AWS SAM / CloudFormation |
+| API | AWS API Gateway REST |
+| Base de datos | AWS DynamoDB (PAY_PER_REQUEST) |
+| Storage frontend | AWS S3 (sitio web estático) |
+| PDF | ReportLab 4.x |
+| AWS SDK Python | boto3 |
 
 ---
 
-## Módulos del panel administrativo
-
-| Sección | Descripción |
-|---------|-------------|
-| Dashboard | KPIs operativos, porcentajes de aprobación e ingresos estimados |
-| Instructores | CRUD de instructores (tipo, disponibilidad) |
-| Clientes | CRUD de estudiantes/clientes |
-| Vehículos | CRUD de la flota (placa, marca, tipo, nivel) |
-| Categorías | CRUD de categorías de licencia con precio y horas |
-| Matriculados | Inscripción de clientes a categorías con fechas |
-| Clases Prácticas | Programación de clases en ruta con instructor y vehículo |
-| Clases Teóricas | Programación de clases teóricas con instructor |
-| Exámenes Prácticos | Registro de exámenes con resultado Aprobado/No Aprobado |
-| Exámenes Teóricos | Registro de exámenes teóricos |
-| Reportes PDF | Informe gerencial y agenda individual del estudiante |
-| Consultas | Listado de aprobados y reprobados en examen práctico |
-
----
-
-## Solución de problemas frecuentes
+## Solución de problemas
 
 ### "La ejecución de scripts está deshabilitada"
 ```powershell
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+# Abrir nueva terminal después
 ```
-Luego abrir una nueva terminal.
 
 ### `sam` no reconocido como comando
 ```powershell
@@ -296,33 +310,15 @@ pip install aws-sam-cli
 # Abrir nueva terminal después de instalar
 ```
 
-### `python` no reconocido como comando
-Verificar que Python esté en el PATH:
-```powershell
-# Agregar al PATH del usuario (ajustar versión si es diferente)
-$pyPath = "C:\Users\$env:USERNAME\AppData\Local\Programs\Python\Python312"
-[Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";$pyPath;$pyPath\Scripts", "User")
-# Abrir nueva terminal
-```
-
-### La API local no responde (timeout en el primer request)
+### La API local no responde en el primer request
 Normal — SAM local descarga la imagen Docker de Python 3.12 la primera vez (~500 MB). Esperar 2-3 minutos y reintentar.
-
-### PDF dice "No podemos abrir este archivo" en Edge
-Actualización ya aplicada en `api.js`: el PDF ahora se descarga directamente en vez de abrir un blob URL en nueva pestaña.
 
 ### DynamoDB local no arranca
 ```powershell
-# Verificar que Docker esté corriendo
-docker ps
-
-# Eliminar contenedor anterior y relanzar
-docker rm -f dynamo-local
-.\scripts\start-local.ps1
+docker ps                   # verificar que Docker esté corriendo
+docker rm -f dynamo-local   # eliminar contenedor anterior si existe
+.\scripts\start-local.ps1   # relanzar
 ```
 
 ### Los cambios del frontend no se ven en producción
-CloudFront tiene caché. Invalidar manualmente:
-```powershell
-aws cloudfront create-invalidation --distribution-id E2SREAR6IFYOLZ --paths "/*"
-```
+S3 puede tener caché. Forzar recarga con Ctrl+Shift+R en el navegador, o esperar unos segundos.
