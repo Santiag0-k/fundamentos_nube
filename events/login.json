@@ -1,0 +1,9 @@
+{
+  "httpMethod": "POST",
+  "path": "/auth/login",
+  "pathParameters": null,
+  "queryStringParameters": null,
+  "headers": { "Content-Type": "application/json" },
+  "body": "{\"username\": \"admin\", \"password\": \"admin\"}",
+  "isBase64Encoded": false
+}

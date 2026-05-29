@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CEA Instituto de Movilidad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ─── Landing-specific styles ─── */
+
+    /* Base: sin scroll horizontal */
+    html, body { overflow-x: hidden; }
+
+    /* Nav */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 64px; z-index: 500;
+      display: flex; align-items: center;
+      padding: 0 16px;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--md-outline-variant);
+      gap: 12px;
+      transition: box-shadow .3s;
+    }
+    .nav.scrolled { box-shadow: var(--md-e1); }
+    @media(min-width:600px){ .nav { padding: 0 24px; } }
+
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; flex: 1;
+    }
+    .nav-brand-icon {
+      width: 36px; height: 36px;
+      background: var(--md-primary);
+      border-radius: var(--md-sm);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--md-on-primary);
+      font-size: 20px;
+    }
+    .nav-brand-name {
+      font-size: 16px; font-weight: 500;
+      color: var(--md-on-surface);
+    }
+    .nav-brand-sub { display: none; }
+    @media(min-width:600px){ .nav-brand-sub { display: inline; font-size: 12px; color: var(--md-on-surface-variant); } }
+
+    .nav-login {
+      padding: 10px 16px;
+      background: var(--md-primary);
+      color: var(--md-on-primary);
+      border-radius: var(--md-full);
+      font-size: 13px; font-weight: 500;
+      text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+      transition: box-shadow .2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .nav-login:hover { box-shadow: var(--md-e1); }
+    /* En móvil ocultar texto del botón, solo ícono */
+    .nav-login-text { display: none; }
+    @media(min-width:480px){ .nav-login-text { display: inline; } }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-slides {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
+    }
+    .hero-slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity .8s ease;
+    }
+    .hero-slide.active { opacity: 1; }
+    .hero-slide img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+    .hero-slide-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        100deg,
+        rgba(64,0,10,.88) 0%,
+        rgba(192,0,46,.55) 60%,
+        transparent 100%
+      );
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px 20px 60px;
+      max-width: 720px;
+      width: 100%;
+    }
+    @media(min-width:480px){ .hero-content { padding: 80px 32px 60px; } }
+    @media(min-width:768px){ .hero-content { padding: 96px 80px 80px; } }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.25);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: var(--md-full);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      width: fit-content;
+    }
+
+    .hero-title {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 300;
+      color: #FFFFFF;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .hero-title strong { font-weight: 700; }
+
+    .hero-desc {
+      font-size: 18px;
+      color: rgba(255,255,255,.8);
+      font-weight: 300;
+      margin-bottom: 36px;
+      max-width: 480px;
+      line-height: 1.6;
+    }
+
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    @media(max-width:400px){
+      .hero-actions { flex-direction: column; }
+      .hero-btn-primary, .hero-btn-secondary { justify-content: center; }
+    }
+
+    .hero-btn-primary {
+      padding: 14px 28px;
+      background: #FFFFFF;
+      color: var(--md-primary);
+      border-radius: var(--md-full);
+      font-size: 15px; font-weight: 500;
+      display: flex; align-items: center; gap: 8px;
+      transition: box-shadow .2s;
+    }
+    .hero-btn-primary:hover { box-shadow: 0 4px 20px rgba(0,0,0,.25); }
+
+    .hero-btn-secondary {
+      padding: 14px 28px;
+      background: rgba(255,255,255,.15);
+      backdrop-filter: blur(8px);
+      color: #FFFFFF;
+      border: 1px solid rgba(255,255,255,.4);
+      border-radius: var(--md-full);
+      font-size: 15px; font-weight: 500;
+      display: flex; align-items: center; gap: 8px;
+      transition: background .2s;
+    }
+    .hero-btn-secondary:hover { background: rgba(255,255,255,.25); }
+
+    /* Slide indicators */
+    .hero-indicators {
+      position: absolute;
+      bottom: 32px;
+      left: 40px;
+      z-index: 10;
+      display: flex;
+      gap: 8px;
+    }
+    @media(min-width:768px){ .hero-indicators { left: 80px; } }
+    .hero-dot {
+      width: 8px; height: 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,.4);
+      border: none;
+      cursor: pointer;
+      transition: background .3s, width .3s;
+    }
+    .hero-dot.active { background: #fff; width: 24px; }
+
+    /* Hero car image — solo visible en pantallas grandes */
+    .hero-car {
+      position: absolute;
+      right: 0; bottom: 0;
+      width: 50%;
+      max-width: 640px;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity .8s .3s;
+      pointer-events: none;
+      display: none;          /* oculto por defecto en móvil */
+    }
+    @media(min-width:768px){ .hero-car { display: block; } }
+    .hero-car.active { opacity: 1; }
+
+    /* Stats bar */
+    .stats-bar {
+      background: var(--md-primary);
+      padding: 0;
+    }
+    .stats-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);  /* siempre 4 columnas */
+    }
+    @media(max-width:600px){
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
+    }
+    .stat-item {
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      border-right: 1px solid rgba(255,255,255,.15);
+      text-align: center;
+    }
+    .stat-item:last-child { border-right: none; }
+    /* En 2 columnas: quitar border-right de items pares */
+    @media(max-width:600px){
+      .stat-item:nth-child(2n) { border-right: none; }
+      .stat-item:nth-child(1),
+      .stat-item:nth-child(2) { border-bottom: 1px solid rgba(255,255,255,.15); }
+    }
+    .stat-item .num {
+      font-size: clamp(28px, 5vw, 36px);
+      font-weight: 700;
+      color: #FFFFFF;
+      line-height: 1;
+    }
+    .stat-item .lbl {
+      font-size: 12px;
+      color: rgba(255,255,255,.7);
+      font-weight: 400;
+    }
+
+    /* Features */
+    .section { padding: 48px 20px; max-width: 1100px; margin: 0 auto; }
+    @media(min-width:768px){ .section { padding: 72px 24px; } }
+
+    .section-header { text-align: center; margin-bottom: 48px; }
+    .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      color: var(--md-primary);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 400;
+      color: var(--md-on-surface);
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .section-sub {
+      font-size: 16px;
+      color: var(--md-on-surface-variant);
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media(min-width:560px){ .features-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media(min-width:900px){ .features-grid { grid-template-columns: repeat(3, 1fr); } }
+    .feature-card {
+      background: var(--md-surf-lowest);
+      border-radius: var(--md-lg);
+      padding: 28px 24px;
+      box-shadow: var(--md-e1);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: box-shadow .2s, transform .2s;
+    }
+    .feature-card:hover { box-shadow: var(--md-e2); transform: translateY(-2px); }
+    .feature-icon {
+      width: 56px; height: 56px;
+      border-radius: var(--md-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+    }
+    .feature-title {
+      font-size: 18px; font-weight: 500; color: var(--md-on-surface);
+    }
+    .feature-desc {
+      font-size: 14px; color: var(--md-on-surface-variant); line-height: 1.6;
+    }
+
+    /* About */
+    .about-section {
+      background: var(--md-surf-low);
+      padding: 48px 20px;
+    }
+    @media(min-width:768px){ .about-section { padding: 72px 24px; } }
+    .about-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+    @media(max-width:768px){ .about-inner { grid-template-columns: 1fr; gap: 32px; } }
+
+    .about-img-wrap {
+      position: relative;
+      border-radius: var(--md-xl);
+      overflow: hidden;
+      aspect-ratio: 4/3;
+    }
+    .about-img-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .about-badge {
+      position: absolute;
+      top: 20px; right: 20px;
+      background: var(--md-primary);
+      color: var(--md-on-primary);
+      border-radius: var(--md-lg);
+      padding: 16px 20px;
+      text-align: center;
+      box-shadow: var(--md-e2);
+    }
+    .about-badge .num { font-size: 32px; font-weight: 700; }
+    .about-badge .lbl { font-size: 12px; opacity: .85; }
+
+    .about-list { display: flex; flex-direction: column; gap: 20px; margin: 24px 0 32px; }
+    .about-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .about-num {
+      width: 40px; height: 40px;
+      background: var(--md-primary-container);
+      color: var(--md-on-primary-container);
+      border-radius: var(--md-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .about-item h6 {
+      font-size: 15px; font-weight: 500; margin-bottom: 4px;
+      color: var(--md-on-surface);
+    }
+    .about-item p {
+      font-size: 13px; color: var(--md-on-surface-variant); line-height: 1.6;
+    }
+
+    /* Courses */
+    .courses-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media(min-width:520px){ .courses-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media(min-width:860px){ .courses-grid { grid-template-columns: repeat(3, 1fr); } }
+    .course-card {
+      background: var(--md-surf-lowest);
+      border-radius: var(--md-lg);
+      overflow: hidden;
+      box-shadow: var(--md-e1);
+      display: flex;
+      flex-direction: column;
+      transition: box-shadow .2s, transform .2s;
+    }
+    .course-card:hover { box-shadow: var(--md-e2); transform: translateY(-2px); }
+    .course-card-header {
+      padding: 20px 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .course-cat-badge {
+      padding: 4px 12px;
+      border-radius: var(--md-full);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .5px;
+    }
+    .course-card-body {
+      padding: 12px 20px 20px;
+      flex: 1;
+    }
+    .course-name { font-size: 18px; font-weight: 500; margin-bottom: 6px; color: var(--md-on-surface); }
+    .course-desc { font-size: 13px; color: var(--md-on-surface-variant); line-height: 1.5; margin-bottom: 16px; }
+    .course-meta {
+      display: flex; gap: 16px;
+    }
+    .course-meta-item {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 12px; color: var(--md-on-surface-variant);
+    }
+    .course-meta-item .material-symbols-rounded { font-size: 16px; }
+
+    /* CTA */
+    .cta-section {
+      background: var(--md-primary);
+      padding: 48px 20px;
+      text-align: center;
+    }
+    @media(min-width:768px){ .cta-section { padding: 72px 24px; } }
+    .cta-section h2 {
+      font-size: 36px; font-weight: 400; color: #fff; margin-bottom: 12px;
+    }
+    .cta-section p {
+      font-size: 16px; color: rgba(255,255,255,.75); margin-bottom: 32px;
+    }
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 32px;
+      background: #fff;
+      color: var(--md-primary);
+      border-radius: var(--md-full);
+      font-size: 15px; font-weight: 500;
+      transition: box-shadow .2s;
+    }
+    .cta-btn:hover { box-shadow: 0 4px 20px rgba(0,0,0,.25); }
+
+    /* Footer */
+    footer {
+      background: var(--md-inverse-surface);
+      color: rgba(255,255,255,.7);
+      padding: 40px 24px;
+      text-align: center;
+    }
+    footer .foot-brand {
+      font-size: 18px; font-weight: 500; color: #fff; margin-bottom: 8px;
+    }
+    footer .foot-sub { font-size: 13px; }
+    footer .foot-copy {
+      margin-top: 24px; font-size: 12px; color: rgba(255,255,255,.4);
+      border-top: 1px solid rgba(255,255,255,.1);
+      padding-top: 16px;
+    }
+
+    /* FAB back to top */
+    .fab-top {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 56px; height: 56px;
+      background: var(--md-primary-container);
+      color: var(--md-on-primary-container);
+      border-radius: var(--md-lg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      box-shadow: var(--md-e2);
+      cursor: pointer;
+      border: none;
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s, box-shadow .2s;
+      z-index: 400;
+    }
+    .fab-top.show { opacity: 1; pointer-events: all; }
+    .fab-top:hover { box-shadow: var(--md-e3); }
+
+    /* Fade-in animation */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Top Nav ─────────────────────────────────────────── -->
+<nav class="nav" id="mainNav">
+  <a href="#" class="nav-brand">
+    <div class="nav-brand-icon">
+      <span class="material-symbols-rounded" style="font-size:20px">directions_car</span>
+    </div>
+    <span class="nav-brand-name">CEA</span>
+    <span class="nav-brand-sub">&nbsp;· Instituto de Movilidad</span>
+  </a>
+  <a href="login.html" class="nav-login">
+    <span class="material-symbols-rounded" style="font-size:18px">lock</span>
+    <span class="nav-login-text">Panel Admin</span>
+  </a>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────── -->
+<section class="hero" id="hero">
+  <div class="hero-slides">
+    <div class="hero-slide active" id="slide-0">
+      <img src="img/carousel-bg-1.jpg" alt="Cursos de carro">
+      <div class="hero-slide-overlay"></div>
+    </div>
+    <div class="hero-slide" id="slide-1">
+      <img src="img/carousel-bg-2.jpg" alt="Cursos de moto">
+      <div class="hero-slide-overlay"></div>
+    </div>
+  </div>
+
+  <img src="img/carousel-1.png" alt="Auto CEA" class="hero-car active" id="car-0">
+  <img src="img/carousel-2.png" alt="Moto CEA" class="hero-car" id="car-1">
+
+  <div class="hero-content" id="hero-content">
+    <div class="hero-tag">
+      <span class="material-symbols-rounded" style="font-size:14px">verified</span>
+      Certificados por el Ministerio de Transporte
+    </div>
+    <h1 class="hero-title" id="hero-title">
+      Aprende a <strong>conducir</strong><br>con los mejores
+    </h1>
+    <p class="hero-desc" id="hero-desc">
+      Cursos B1 · B2 · C1 para vehículos particulares y de carga
+    </p>
+    <div class="hero-actions">
+      <a href="#cursos" class="hero-btn-primary">
+        <span class="material-symbols-rounded" style="font-size:18px">school</span>
+        Ver cursos
+      </a>
+      <a href="#nosotros" class="hero-btn-secondary">
+        Conoce el CEA
+        <span class="material-symbols-rounded" style="font-size:18px">arrow_forward</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-indicators">
+    <button class="hero-dot active" onclick="goSlide(0)"></button>
+    <button class="hero-dot" onclick="goSlide(1)"></button>
+  </div>
+</section>
+
+<!-- ── Stats bar ──────────────────────────────────────── -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item fade-up">
+      <span class="num">+20</span>
+      <span class="lbl">Años de experiencia</span>
+    </div>
+    <div class="stat-item fade-up">
+      <span class="num">+3500</span>
+      <span class="lbl">Conductores formados</span>
+    </div>
+    <div class="stat-item fade-up">
+      <span class="num">5</span>
+      <span class="lbl">Categorías de licencia</span>
+    </div>
+    <div class="stat-item fade-up">
+      <span class="num">92%</span>
+      <span class="lbl">Tasa de aprobación</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Features ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-eyebrow">
+      <span class="material-symbols-rounded" style="font-size:16px">stars</span>
+      Por qué elegirnos
+    </div>
+    <h2 class="section-title">Formación de calidad, resultados reales</h2>
+    <p class="section-sub">Más de dos décadas preparando conductores responsables con metodología moderna y docentes certificados.</p>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card fade-up">
+      <div class="feature-icon" style="background:var(--md-primary-container);color:var(--md-on-primary-container)">
+        <span class="material-symbols-rounded">workspace_premium</span>
+      </div>
+      <div class="feature-title">Certificación oficial</div>
+      <div class="feature-desc">Avalados por el Ministerio de Transporte. Tu licencia tiene respaldo institucional desde el primer día.</div>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="feature-icon" style="background:#E8F5E9;color:#1B5E20">
+        <span class="material-symbols-rounded">person_play</span>
+      </div>
+      <div class="feature-title">Instructores expertos</div>
+      <div class="feature-desc">Docentes certificados con experiencia en conducción preventiva, normatividad vial y seguridad activa.</div>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="feature-icon" style="background:var(--md-tertiary-container);color:var(--md-on-tertiary-container)">
+        <span class="material-symbols-rounded">directions_car</span>
+      </div>
+      <div class="feature-title">Flota moderna</div>
+      <div class="feature-desc">Vehículos con doble mando, en óptimas condiciones mecánicas para que aprendas con total seguridad.</div>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="feature-icon" style="background:#FFF3E0;color:#E65100">
+        <span class="material-symbols-rounded">schedule</span>
+      </div>
+      <div class="feature-title">Horarios flexibles</div>
+      <div class="feature-desc">Clases mañana, tarde y noche. Tú eliges el horario que mejor se adapte a tu rutina.</div>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="feature-icon" style="background:#F3E5F5;color:#6A1B9A">
+        <span class="material-symbols-rounded">menu_book</span>
+      </div>
+      <div class="feature-title">Teoría completa</div>
+      <div class="feature-desc">Módulos de normatividad vial, señalización y mecánica básica incluidos en todos los programas.</div>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="feature-icon" style="background:#E3F2FD;color:#0D47A1">
+        <span class="material-symbols-rounded">fact_check</span>
+      </div>
+      <div class="feature-title">Preparación para exámenes</div>
+      <div class="feature-desc">Simulacros de pruebas teóricas y prácticas para que enfrentes tu examen de tránsito con confianza.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── About ──────────────────────────────────────────── -->
+<div class="about-section" id="nosotros">
+  <div class="about-inner">
+    <div class="about-img-wrap fade-up">
+      <img src="img/about.jpg" alt="Instalaciones CEA">
+      <div class="about-badge">
+        <div class="num">20</div>
+        <div class="lbl">Años de<br>experiencia</div>
+      </div>
+    </div>
+    <div class="fade-up">
+      <div class="section-eyebrow">
+        <span class="material-symbols-rounded" style="font-size:16px">info</span>
+        Acerca del CEA
+      </div>
+      <h2 class="section-title" style="text-align:left">Centro de Educación Avanzada</h2>
+      <p style="color:var(--md-on-surface-variant);font-size:15px;line-height:1.7;margin-bottom:8px">
+        El CEA Instituto de Movilidad es la institución líder en formación de conductores de la región,
+        con más de 20 años transformando la manera en que Colombia aprende a conducir.
+      </p>
+      <div class="about-list">
+        <div class="about-item">
+          <div class="about-num">01</div>
+          <div>
+            <h6>Facultad certificada</h6>
+            <p>Nuestros instructores son evaluados y recertificados periódicamente. Traen experiencia real al aula.</p>
+          </div>
+        </div>
+        <div class="about-item">
+          <div class="about-num">02</div>
+          <div>
+            <h6>Programas innovadores</h6>
+            <p>Metodología actualizada con énfasis en conducción eco-eficiente y manejo preventivo del riesgo.</p>
+          </div>
+        </div>
+        <div class="about-item">
+          <div class="about-num">03</div>
+          <div>
+            <h6>Seguimiento personalizado</h6>
+            <p>Calendario de clases individual, reportes de progreso y preparación dirigida para el examen.</p>
+          </div>
+        </div>
+      </div>
+      <a href="#cursos" class="md-btn md-btn-filled">
+        <span class="material-symbols-rounded" style="font-size:18px">school</span>
+        Ver todos los cursos
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ── Cursos ──────────────────────────────────────────── -->
+<div class="section" id="cursos">
+  <div class="section-header">
+    <div class="section-eyebrow">
+      <span class="material-symbols-rounded" style="font-size:16px">category</span>
+      Nuestros programas
+    </div>
+    <h2 class="section-title">Categorías de licencia</h2>
+    <p class="section-sub">Elige la categoría que necesitas y empieza tu formación con nosotros.</p>
+  </div>
+
+  <div class="courses-grid">
+    <div class="course-card fade-up">
+      <div class="course-card-header">
+        <span class="course-cat-badge" style="background:#BBDEFB;color:#0D47A1">A1</span>
+      </div>
+      <div class="course-card-body">
+        <div class="course-name">Motocicletas</div>
+        <div class="course-desc">Formación para motos de hasta 125 cc. Ideal para movilidad urbana ágil y económica.</div>
+        <div class="course-meta">
+          <div class="course-meta-item"><span class="material-symbols-rounded">schedule</span> 20 horas</div>
+          <div class="course-meta-item"><span class="material-symbols-rounded">menu_book</span> Teoría + práctica</div>
+        </div>
+      </div>
+    </div>
+    <div class="course-card fade-up">
+      <div class="course-card-header">
+        <span class="course-cat-badge" style="background:#C8E6C9;color:#1B5E20">A2</span>
+      </div>
+      <div class="course-card-body">
+        <div class="course-name">Motos avanzadas</div>
+        <div class="course-desc">Motocicletas de más de 125 cc, scooters y triciclos. Conducción segura en carretera y ciudad.</div>
+        <div class="course-meta">
+          <div class="course-meta-item"><span class="material-symbols-rounded">schedule</span> 24 horas</div>
+          <div class="course-meta-item"><span class="material-symbols-rounded">menu_book</span> Teoría + práctica</div>
+        </div>
+      </div>
+    </div>
+    <div class="course-card fade-up">
+      <div class="course-card-header">
+        <span class="course-cat-badge" style="background:#E1BEE7;color:#4A148C">B1</span>
+      </div>
+      <div class="course-card-body">
+        <div class="course-name">Automóvil particular</div>
+        <div class="course-desc">Vehículos de uso particular con transmisión manual o automática. La licencia más solicitada.</div>
+        <div class="course-meta">
+          <div class="course-meta-item"><span class="material-symbols-rounded">schedule</span> 30 horas</div>
+          <div class="course-meta-item"><span class="material-symbols-rounded">menu_book</span> Teoría + práctica</div>
+        </div>
+      </div>
+    </div>
+    <div class="course-card fade-up">
+      <div class="course-card-header">
+        <span class="course-cat-badge" style="background:#FFE0B2;color:#E65100">B2</span>
+      </div>
+      <div class="course-card-body">
+        <div class="course-name">Taxi y servicio público</div>
+        <div class="course-desc">Licencia para conducir vehículos de servicio público de transporte de pasajeros.</div>
+        <div class="course-meta">
+          <div class="course-meta-item"><span class="material-symbols-rounded">schedule</span> 36 horas</div>
+          <div class="course-meta-item"><span class="material-symbols-rounded">menu_book</span> Teoría + práctica</div>
+        </div>
+      </div>
+    </div>
+    <div class="course-card fade-up">
+      <div class="course-card-header">
+        <span class="course-cat-badge" style="background:#FFDAD9;color:#40000A">C1</span>
+      </div>
+      <div class="course-card-body">
+        <div class="course-name">Camiones y buses</div>
+        <div class="course-desc">Vehículos de carga pesada y buses de servicio público. Formación especializada.</div>
+        <div class="course-meta">
+          <div class="course-meta-item"><span class="material-symbols-rounded">schedule</span> 40 horas</div>
+          <div class="course-meta-item"><span class="material-symbols-rounded">menu_book</span> Teoría + práctica</div>
+        </div>
+      </div>
+    </div>
+    <div class="course-card fade-up">
+      <div class="course-card-header">
+        <span class="course-cat-badge" style="background:#DEE2F9;color:#161B2C">C2</span>
+      </div>
+      <div class="course-card-body">
+        <div class="course-name">Vehículos articulados</div>
+        <div class="course-desc">Tractomulas, carro-tanques y vehículos de transporte especial. Nivel avanzado.</div>
+        <div class="course-meta">
+          <div class="course-meta-item"><span class="material-symbols-rounded">schedule</span> 48 horas</div>
+          <div class="course-meta-item"><span class="material-symbols-rounded">menu_book</span> Teoría + práctica</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CTA ────────────────────────────────────────────── -->
+<div class="cta-section">
+  <h2>¿Listo para obtener tu licencia?</h2>
+  <p>Inscríbete hoy y empieza en la próxima convocatoria disponible.</p>
+  <a href="login.html" class="cta-btn">
+    <span class="material-symbols-rounded" style="font-size:18px">arrow_forward</span>
+    Ir al panel de registro
+  </a>
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────── -->
+<footer>
+  <div class="foot-brand">CEA Instituto de Movilidad</div>
+  <div class="foot-sub">Centro de Educación Avanzada · Formando conductores responsables</div>
+  <div class="foot-copy">© 2025 CEA Instituto de Movilidad. Todos los derechos reservados.</div>
+</footer>
+
+<!-- FAB volver arriba -->
+<button class="fab-top" id="fabTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <span class="material-symbols-rounded">arrow_upward</span>
+</button>
+
+<script>
+// ── Carousel ──────────────────────────────────────────
+var currentSlide = 0;
+var slides = [
+  { title: 'Aprende a <strong>conducir</strong><br>con los mejores', desc: 'Cursos B1 · B2 · C1 para vehículos particulares y de carga' },
+  { title: '<strong>Moto</strong>ciclismo<br>profesional', desc: 'Cursos A1 · A2 para motos y scooters de cualquier cilindrada' }
+];
+
+function goSlide(n) {
+  document.getElementById('slide-' + currentSlide).classList.remove('active');
+  document.getElementById('car-' + currentSlide).classList.remove('active');
+  document.querySelectorAll('.hero-dot')[currentSlide].classList.remove('active');
+  currentSlide = n;
+  document.getElementById('slide-' + n).classList.add('active');
+  document.getElementById('car-' + n).classList.add('active');
+  document.querySelectorAll('.hero-dot')[n].classList.add('active');
+  document.getElementById('hero-title').innerHTML = slides[n].title;
+  document.getElementById('hero-desc').textContent = slides[n].desc;
+}
+
+setInterval(function(){ goSlide((currentSlide + 1) % 2); }, 5000);
+
+// ── Nav scroll ────────────────────────────────────────
+window.addEventListener('scroll', function() {
+  document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 20);
+  document.getElementById('fabTop').classList.toggle('show', window.scrollY > 400);
+});
+
+// ── Fade-in observer ──────────────────────────────────
+var io = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.fade-up').forEach(function(el) { io.observe(el); });
+</script>
+</body>
+</html>

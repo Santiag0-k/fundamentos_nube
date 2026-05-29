@@ -1,0 +1,9 @@
+{
+  "httpMethod": "POST",
+  "path": "/cliente",
+  "pathParameters": null,
+  "queryStringParameters": null,
+  "headers": { "Content-Type": "application/json" },
+  "body": "{\"nombre\": \"Laura\", \"apellido\": \"Rojas\", \"telefono\": \"3105551212\", \"correo\": \"laura@demo.com\", \"cedula\": \"1001001001\"}",
+  "isBase64Encoded": false
+}

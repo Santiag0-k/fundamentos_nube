@@ -1,0 +1,152 @@
+/* ===================================================================
+   CEA Instituto de Movilidad — Material Design 3 System
+   =================================================================== */
+
+/* ─── Design Tokens ─────────────────────────────────────────────── */
+:root {
+  --md-primary:              #C0002E;
+  --md-on-primary:           #FFFFFF;
+  --md-primary-container:    #FFDAD6;
+  --md-on-primary-container: #40000A;
+
+  --md-secondary:              #775656;
+  --md-on-secondary:           #FFFFFF;
+  --md-secondary-container:    #FFDAD6;
+  --md-on-secondary-container: #2C1515;
+
+  --md-tertiary:              #7A5900;
+  --md-on-tertiary:           #FFFFFF;
+  --md-tertiary-container:    #FFDF9B;
+  --md-on-tertiary-container: #261900;
+
+  --md-error:              #8B0018;
+  --md-on-error:           #FFFFFF;
+  --md-error-container:    #FFDAD6;
+  --md-on-error-container: #40000A;
+
+  --md-surface:            #F9F9FF;
+  --md-on-surface:         #1A1B20;
+  --md-surface-variant:    #E1E2EC;
+  --md-on-surface-variant: #44464F;
+  --md-outline:            #74777F;
+  --md-outline-variant:    #C4C6D0;
+
+  --md-surf-lowest:  #FFFFFF;
+  --md-surf-low:     #F3F3FA;
+  --md-surf-high:    #E7E8EE;
+  --md-surf-highest: #E2E2E9;
+
+  --md-inverse-surface:    #2F3038;
+  --md-inverse-on-surface: #F1F0F7;
+  --md-inverse-primary:    #B3C5FF;
+
+  --md-xs:   4px;
+  --md-sm:   8px;
+  --md-md:   12px;
+  --md-lg:   16px;
+  --md-xl:   28px;
+  --md-full: 9999px;
+
+  --md-e1: 0 1px 2px rgba(0,0,0,.3), 0 1px 3px 1px rgba(0,0,0,.15);
+  --md-e2: 0 1px 2px rgba(0,0,0,.3), 0 2px 6px 2px rgba(0,0,0,.15);
+  --md-e3: 0 4px 8px 3px rgba(0,0,0,.15), 0 1px 3px rgba(0,0,0,.3);
+
+  --md-font: 'Roboto', system-ui, sans-serif;
+}
+
+/* ─── Reset ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  font-family: var(--md-font);
+  background: var(--md-surface);
+  color: var(--md-on-surface);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+img { max-width: 100%; display: block; }
+a { color: var(--md-primary); text-decoration: none; }
+
+/* ─── Material Symbols ───────────────────────────────────────────── */
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded';
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────── */
+.md-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: var(--md-full);
+  border: none;
+  cursor: pointer;
+  font-family: var(--md-font);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: .1px;
+  line-height: 20px;
+  text-decoration: none;
+  transition: box-shadow .2s, opacity .15s;
+  white-space: nowrap;
+}
+.md-btn:active { opacity: .82; }
+.md-btn-filled  { background: var(--md-primary); color: var(--md-on-primary); }
+.md-btn-filled:hover  { box-shadow: var(--md-e1); }
+.md-btn-tonal   { background: var(--md-secondary-container); color: var(--md-on-secondary-container); }
+.md-btn-tonal:hover   { box-shadow: var(--md-e1); }
+.md-btn-outlined { background: transparent; color: var(--md-primary); border: 1px solid var(--md-outline); }
+.md-btn-text    { background: transparent; color: var(--md-primary); padding: 10px 12px; }
+.md-btn-error   { background: var(--md-error); color: var(--md-on-error); }
+.md-btn-error:hover   { box-shadow: var(--md-e1); }
+.md-btn-sm { padding: 6px 16px; font-size: 12px; }
+.md-btn-lg { padding: 14px 32px; font-size: 16px; }
+
+/* ─── Cards ──────────────────────────────────────────────────────── */
+.md-card          { background: var(--md-surf-low); border-radius: var(--md-md); padding: 20px; }
+.md-card-elevated { background: var(--md-surf-lowest); box-shadow: var(--md-e1); border-radius: var(--md-md); padding: 20px; }
+.md-card-outlined { background: var(--md-surface); border: 1px solid var(--md-outline-variant); border-radius: var(--md-md); padding: 20px; }
+
+/* ─── Badges ─────────────────────────────────────────────────────── */
+.md-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 12px; border-radius: var(--md-full);
+  font-size: 12px; font-weight: 500;
+}
+.md-badge-success { background: #E8F5E9; color: #1B5E20; }
+.md-badge-error   { background: var(--md-error-container); color: var(--md-on-error-container); }
+.md-badge-neutral { background: var(--md-surface-variant); color: var(--md-on-surface-variant); }
+.md-badge-primary { background: var(--md-primary-container); color: var(--md-on-primary-container); }
+
+/* ─── Snackbar (toasts) ──────────────────────────────────────────── */
+#toastWrap {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  z-index: 9999; display: flex; flex-direction: column;
+  align-items: center; gap: 8px; pointer-events: none;
+}
+.cea-toast {
+  background: var(--md-inverse-surface); color: var(--md-inverse-on-surface);
+  padding: 14px 24px; border-radius: var(--md-xs);
+  font-size: 14px; box-shadow: var(--md-e3);
+  min-width: 280px; max-width: 560px; text-align: center;
+  animation: snack-in .25s ease; pointer-events: all;
+}
+.cea-toast.success { background: #1B5E20; }
+.cea-toast.error   { background: var(--md-error); }
+.cea-toast.info    { background: var(--md-primary); }
+@keyframes snack-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Divider ────────────────────────────────────────────────────── */
+.md-divider { height: 1px; background: var(--md-outline-variant); border: none; }

@@ -1,0 +1,283 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: CEA Instituto de Movilidad - Serverless API (Multi-Lambda)
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 30
+    MemorySize: 128
+    Layers:
+    - Ref: SharedLayer
+    Environment:
+      Variables:
+        TABLE_RECORDS:
+          Ref: RecordsTable
+        TABLE_USERS:
+          Ref: UsersTable
+        DYNAMODB_ENDPOINT: ''
+  Api:
+    BinaryMediaTypes:
+    - application~1pdf
+    Cors:
+      AllowMethods: '''GET,POST,PUT,DELETE,OPTIONS'''
+      AllowHeaders: '''Content-Type,Authorization'''
+      AllowOrigin: '''*'''
+Resources:
+  SharedLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: cea-shared
+      Description: Utilidades compartidas CEA
+      ContentUri: ..\..\..\backend\shared
+      CompatibleRuntimes:
+      - python3.12
+      RetentionPolicy: Delete
+  AuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: cea-auth
+      CodeUri: AuthFunction
+      Handler: handler.lambda_handler
+      Description: Autenticacion y health check
+      Timeout: 10
+      Policies:
+      - DynamoDBReadPolicy:
+          TableName:
+            Ref: UsersTable
+      Events:
+        Health:
+          Type: Api
+          Properties:
+            Path: /health
+            Method: GET
+        Login:
+          Type: Api
+          Properties:
+            Path: /auth/login
+            Method: POST
+    Metadata:
+      SamResourceId: AuthFunction
+  CoreFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: cea-core
+      CodeUri: CoreFunction
+      Handler: handler.lambda_handler
+      Description: CRUD recursos base
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: RecordsTable
+      Events:
+        InstructorList:
+          Type: Api
+          Properties:
+            Path: /instructor
+            Method: ANY
+        InstructorItem:
+          Type: Api
+          Properties:
+            Path: /instructor/{id}
+            Method: ANY
+        ClienteNombre:
+          Type: Api
+          Properties:
+            Path: /cliente/{id}/nombre
+            Method: GET
+        ClienteList:
+          Type: Api
+          Properties:
+            Path: /cliente
+            Method: ANY
+        ClienteItem:
+          Type: Api
+          Properties:
+            Path: /cliente/{id}
+            Method: ANY
+        VehiculoList:
+          Type: Api
+          Properties:
+            Path: /vehiculo
+            Method: ANY
+        VehiculoItem:
+          Type: Api
+          Properties:
+            Path: /vehiculo/{id}
+            Method: ANY
+        CategoriaList:
+          Type: Api
+          Properties:
+            Path: /categoria
+            Method: ANY
+        CategoriaItem:
+          Type: Api
+          Properties:
+            Path: /categoria/{id}
+            Method: ANY
+    Metadata:
+      SamResourceId: CoreFunction
+  AcadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: cea-acad
+      CodeUri: AcadFunction
+      Handler: handler.lambda_handler
+      Description: Gestion academica y progreso
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: RecordsTable
+      Events:
+        MatriculadoProgreso:
+          Type: Api
+          Properties:
+            Path: /matriculados/{id}/progreso
+            Method: GET
+        MatriculadoList:
+          Type: Api
+          Properties:
+            Path: /matriculados
+            Method: ANY
+        MatriculadoItem:
+          Type: Api
+          Properties:
+            Path: /matriculados/{id}
+            Method: ANY
+        ClasePAgregar:
+          Type: Api
+          Properties:
+            Path: /clase-practica/agregar
+            Method: POST
+        ClasePList:
+          Type: Api
+          Properties:
+            Path: /clase-practica
+            Method: ANY
+        ClasePItem:
+          Type: Api
+          Properties:
+            Path: /clase-practica/{id}
+            Method: ANY
+        ClaseTAgregar:
+          Type: Api
+          Properties:
+            Path: /claseteorica/Agregar
+            Method: POST
+        ClaseTList:
+          Type: Api
+          Properties:
+            Path: /claseteorica
+            Method: ANY
+        ClaseTItem:
+          Type: Api
+          Properties:
+            Path: /claseteorica/{id}
+            Method: ANY
+        ExamenPAgregar:
+          Type: Api
+          Properties:
+            Path: /examen-practico/agregar
+            Method: POST
+        ExamenPList:
+          Type: Api
+          Properties:
+            Path: /examen-practico
+            Method: ANY
+        ExamenPItem:
+          Type: Api
+          Properties:
+            Path: /examen-practico/{id}
+            Method: ANY
+        ExamenTAgregar:
+          Type: Api
+          Properties:
+            Path: /examen-teorico/agregar
+            Method: POST
+        ExamenTList:
+          Type: Api
+          Properties:
+            Path: /examen-teorico
+            Method: ANY
+        ExamenTItem:
+          Type: Api
+          Properties:
+            Path: /examen-teorico/{id}
+            Method: ANY
+    Metadata:
+      SamResourceId: AcadFunction
+  ReportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: cea-reports
+      CodeUri: ReportFunction
+      Handler: handler.lambda_handler
+      Description: Reportes PDF e informes gerenciales
+      MemorySize: 512
+      Timeout: 60
+      Policies:
+      - DynamoDBReadPolicy:
+          TableName:
+            Ref: RecordsTable
+      Events:
+        ExamenAprobado:
+          Type: Api
+          Properties:
+            Path: /examen-practico-aprobado
+            Method: GET
+        ExamenReprobado:
+          Type: Api
+          Properties:
+            Path: /examen-practico-reprobado
+            Method: GET
+        Gerencia:
+          Type: Api
+          Properties:
+            Path: /reportes/gerencia
+            Method: GET
+        GerenciaPdf:
+          Type: Api
+          Properties:
+            Path: /reportes/gerencia/pdf
+            Method: GET
+        CalendarioPdf:
+          Type: Api
+          Properties:
+            Path: /reportes/calendario/matriculado/{id}/pdf
+            Method: GET
+    Metadata:
+      SamResourceId: ReportFunction
+  RecordsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: cea-records
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: resource
+        AttributeType: S
+      - AttributeName: id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: resource
+        KeyType: HASH
+      - AttributeName: id
+        KeyType: RANGE
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: cea-users
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: username
+        AttributeType: S
+      KeySchema:
+      - AttributeName: username
+        KeyType: HASH
+Outputs:
+  ApiUrl:
+    Description: URL de la API Gateway
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
+  SharedLayerArn:
+    Description: ARN del Lambda Layer compartido
+    Value:
+      Ref: SharedLayer

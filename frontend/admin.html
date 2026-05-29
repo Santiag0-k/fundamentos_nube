@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Administrativo | CEA Instituto de Movilidad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/admin-dashboard.css">
+<script>
+(function(){
+  try {
+    var r = localStorage.getItem('cea_auth');
+    if (!r) { window.location.replace('login.html'); return; }
+    var a = JSON.parse(r);
+    if (!a || a.ok !== true) { window.location.replace('login.html'); return; }
+    if (Date.now() - Number(a.at || 0) > 43200000) {
+      localStorage.removeItem('cea_auth');
+      localStorage.removeItem('cea_admin_user');
+      window.location.replace('login.html');
+    }
+  } catch(_) { window.location.replace('login.html'); }
+})();
+</script>
+</head>
+<body>
+
+<!-- ── Sidebar overlay (mobile) ───────────────── -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- ── Navigation Drawer ──────────────────────── -->
+<div id="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-icon">
+      <span class="material-symbols-rounded" style="font-size:22px">directions_car</span>
+    </div>
+    <div class="sidebar-brand-text">
+      <h5>CEA</h5>
+      <small>Instituto de Movilidad</small>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">General</div>
+    <button class="sidebar-link" data-section="dashboard">
+      <span class="material-symbols-rounded">dashboard</span>
+      Dashboard
+    </button>
+
+    <div class="sidebar-section-label">Recursos</div>
+    <button class="sidebar-link" data-section="instructores">
+      <span class="material-symbols-rounded">school</span>
+      Instructores
+    </button>
+    <button class="sidebar-link" data-section="clientes">
+      <span class="material-symbols-rounded">group</span>
+      Clientes
+    </button>
+    <button class="sidebar-link" data-section="vehiculos">
+      <span class="material-symbols-rounded">directions_car</span>
+      Vehículos
+    </button>
+    <button class="sidebar-link" data-section="categorias">
+      <span class="material-symbols-rounded">label</span>
+      Categorías
+    </button>
+    <button class="sidebar-link" data-section="matriculados">
+      <span class="material-symbols-rounded">assignment_ind</span>
+      Matriculados
+    </button>
+
+    <div class="sidebar-section-label">Actividades</div>
+    <button class="sidebar-link" data-section="cpractica">
+      <span class="material-symbols-rounded">route</span>
+      Clases Prácticas
+    </button>
+    <button class="sidebar-link" data-section="cteorica">
+      <span class="material-symbols-rounded">menu_book</span>
+      Clases Teóricas
+    </button>
+    <button class="sidebar-link" data-section="epractico">
+      <span class="material-symbols-rounded">flag</span>
+      Exámenes Prácticos
+    </button>
+    <button class="sidebar-link" data-section="eteorico">
+      <span class="material-symbols-rounded">quiz</span>
+      Exámenes Teóricos
+    </button>
+
+    <div class="sidebar-section-label">Seguimiento</div>
+    <button class="sidebar-link" data-section="progreso">
+      <span class="material-symbols-rounded">timeline</span>
+      Progreso Estudiante
+    </button>
+
+    <div class="sidebar-section-label">Informes</div>
+    <button class="sidebar-link" data-section="reportes">
+      <span class="material-symbols-rounded">picture_as_pdf</span>
+      Reportes PDF
+    </button>
+    <button class="sidebar-link" data-section="consultas">
+      <span class="material-symbols-rounded">manage_search</span>
+      Consultas
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button onclick="cerrarSesion()">
+      <span class="material-symbols-rounded" style="font-size:20px">logout</span>
+      Cerrar sesión
+    </button>
+  </div>
+</div>
+
+<!-- ── Main ───────────────────────────────────── -->
+<div id="main">
+
+  <!-- Top App Bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="topbar-menu-btn" id="menuBtn" onclick="toggleSidebar()">
+        <span class="material-symbols-rounded">menu</span>
+      </button>
+      <h6 id="topbar-title">Dashboard</h6>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-user-chip">
+        <div class="topbar-user-avatar" id="topbar-avatar">A</div>
+        <span id="topbar-user"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══════════════════════════════════════════
+         DASHBOARD
+    ══════════════════════════════════════════ -->
+    <section class="cea-section active" id="sec-dashboard">
+      <div class="section-title">
+        <span class="material-symbols-rounded">dashboard</span>
+        Dashboard
+      </div>
+
+      <!-- Acciones rápidas -->
+      <div class="dash-quick-actions">
+        <button class="dash-action" onclick="openSection('clientes');loadClientes()">
+          <span class="material-symbols-rounded">person_add</span>Nuevo cliente
+        </button>
+        <button class="dash-action" onclick="openSection('matriculados');loadMatriculados()">
+          <span class="material-symbols-rounded">assignment_ind</span>Matricular
+        </button>
+        <button class="dash-action" onclick="openSection('cpractica');loadClasePractica()">
+          <span class="material-symbols-rounded">route</span>Agendar clase
+        </button>
+        <button class="dash-action" onclick="openSection('progreso');loadProgreso()">
+          <span class="material-symbols-rounded">timeline</span>Ver progreso
+        </button>
+        <button class="dash-action" onclick="verReporteGerencia()">
+          <span class="material-symbols-rounded">picture_as_pdf</span>Informe PDF
+        </button>
+      </div>
+
+      <!-- KPI cards -->
+      <div id="dashboard-kpis"></div>
+
+      <!-- Segunda fila -->
+      <div class="row g-4">
+        <div class="col-md-7">
+          <div class="cea-card" id="dash-actividad">
+            <div class="cea-card-title">
+              <span class="material-symbols-rounded" style="font-size:16px">history</span>
+              Actividad reciente
+            </div>
+            <div id="dashboard-actividad">
+              <div class="skeleton-cell" style="width:80%;margin-bottom:12px"></div>
+              <div class="skeleton-cell" style="width:65%;margin-bottom:12px"></div>
+              <div class="skeleton-cell" style="width:72%"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div class="cea-card" style="margin-bottom:16px">
+            <div class="cea-card-title">
+              <span class="material-symbols-rounded" style="font-size:16px">payments</span>
+              Finanzas
+            </div>
+            <div id="dashboard-finanzas"></div>
+          </div>
+          <div class="cea-card">
+            <div class="cea-card-title">
+              <span class="material-symbols-rounded" style="font-size:16px">analytics</span>
+              Tasas de aprobación
+            </div>
+            <div id="dashboard-aprobacion"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Distribución por categoría -->
+      <div class="cea-card" style="margin-top:4px">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">bar_chart</span>
+          Estudiantes por categoría
+        </div>
+        <div id="dashboard-categorias"></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         INSTRUCTORES
+    ══════════════════════════════════════════ -->
+    <section class="cea-section" id="sec-instructores">
+      <div class="section-title">
+        <span class="material-symbols-rounded">school</span>
+        Instructores
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">person_add</span>
+          Registrar instructor
+        </div>
+        <form id="form-instructor" onsubmit="crearInstructor(event)">
+          <div class="row g-3">
+            <div class="col-md-3"><label class="form-label">Nombre</label><input class="form-control" id="iNombre" required placeholder="Nombre"></div>
+            <div class="col-md-3"><label class="form-label">Apellido</label><input class="form-control" id="iApellido" required placeholder="Apellido"></div>
+            <div class="col-md-3"><label class="form-label">Cédula</label><input class="form-control" id="iCedula" required placeholder="Número de cédula"></div>
+            <div class="col-md-3"><label class="form-label">Correo</label><input class="form-control" type="email" id="iCorreo" placeholder="correo@ejemplo.com"></div>
+            <div class="col-md-3"><label class="form-label">Teléfono</label><input class="form-control" id="iTelefono" placeholder="300 000 0000"></div>
+            <div class="col-md-3"><label class="form-label">Tipo</label>
+              <select class="form-select" id="iTipo">
+                <option value="carro">Carro</option>
+                <option value="moto">Moto</option>
+              </select>
+            </div>
+            <div class="col-md-3"><label class="form-label">Disponibilidad</label>
+              <select class="form-select" id="iDisp">
+                <option value="disponible">Disponible</option>
+                <option value="noDisponible">No Disponible</option>
+              </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+              <button class="btn-cea w-100" type="submit">
+                <span class="material-symbols-rounded" style="font-size:18px">add</span>
+                Crear
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <div class="edit-panel" id="card-instructor-edit">
+          <h6>Editar instructor</h6>
+          <form onsubmit="actualizarInstructor(event)">
+            <input type="hidden" id="iEditId">
+            <div class="row g-3">
+              <div class="col-md-3"><label class="form-label">Nombre</label><input class="form-control" id="iEditNombre"></div>
+              <div class="col-md-3"><label class="form-label">Apellido</label><input class="form-control" id="iEditApellido"></div>
+              <div class="col-md-3"><label class="form-label">Cédula</label><input class="form-control" id="iEditCedula"></div>
+              <div class="col-md-3"><label class="form-label">Correo</label><input class="form-control" id="iEditCorreo"></div>
+              <div class="col-md-3"><label class="form-label">Teléfono</label><input class="form-control" id="iEditTelefono"></div>
+              <div class="col-md-3"><label class="form-label">Tipo</label>
+                <select class="form-select" id="iEditTipo">
+                  <option value="carro">Carro</option>
+                  <option value="moto">Moto</option>
+                </select>
+              </div>
+              <div class="col-md-3"><label class="form-label">Disponibilidad</label>
+                <select class="form-select" id="iEditDisp">
+                  <option value="disponible">Disponible</option>
+                  <option value="noDisponible">No Disponible</option>
+                </select>
+              </div>
+              <div class="col-md-3 d-flex align-items-end gap-2">
+                <button class="btn-cea" type="submit">Guardar</button>
+                <button class="md-btn md-btn-outlined md-btn-sm" type="button" onclick="document.getElementById('card-instructor-edit').style.display='none'">Cancelar</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">list</span>
+          Lista de instructores
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>Nombre</th><th>Apellido</th><th>Cédula</th><th>Correo</th><th>Teléfono</th><th>Tipo</th><th>Disponibilidad</th><th>Acciones</th></tr></thead>
+            <tbody id="tbl-instructor-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         CLIENTES
+    ══════════════════════════════════════════ -->
+    <section class="cea-section" id="sec-clientes">
+      <div class="section-title">
+        <span class="material-symbols-rounded">group</span>
+        Clientes
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">person_add</span>
+          Registrar cliente
+        </div>
+        <form id="form-cliente" onsubmit="crearCliente(event)">
+          <div class="row g-3">
+            <div class="col-md-3"><label class="form-label">Nombre</label><input class="form-control" id="cNombre" required placeholder="Nombre"></div>
+            <div class="col-md-3"><label class="form-label">Apellido</label><input class="form-control" id="cApellido" required placeholder="Apellido"></div>
+            <div class="col-md-3"><label class="form-label">Cédula</label><input class="form-control" id="cCedula" required placeholder="Número de cédula"></div>
+            <div class="col-md-3"><label class="form-label">Correo</label><input class="form-control" type="email" id="cCorreo" placeholder="correo@ejemplo.com"></div>
+            <div class="col-md-3"><label class="form-label">Teléfono</label><input class="form-control" id="cTelefono" placeholder="300 000 0000"></div>
+            <div class="col-md-3 d-flex align-items-end">
+              <button class="btn-cea w-100" type="submit">
+                <span class="material-symbols-rounded" style="font-size:18px">add</span>
+                Crear
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <div class="edit-panel" id="card-cliente-edit">
+          <h6>Editar cliente</h6>
+          <form onsubmit="actualizarCliente(event)">
+            <input type="hidden" id="cEditId">
+            <div class="row g-3">
+              <div class="col-md-3"><label class="form-label">Nombre</label><input class="form-control" id="cEditNombre"></div>
+              <div class="col-md-3"><label class="form-label">Apellido</label><input class="form-control" id="cEditApellido"></div>
+              <div class="col-md-3"><label class="form-label">Cédula</label><input class="form-control" id="cEditCedula"></div>
+              <div class="col-md-3"><label class="form-label">Correo</label><input class="form-control" id="cEditCorreo"></div>
+              <div class="col-md-3"><label class="form-label">Teléfono</label><input class="form-control" id="cEditTelefono"></div>
+              <div class="col-md-3 d-flex align-items-end gap-2">
+                <button class="btn-cea" type="submit">Guardar</button>
+                <button class="md-btn md-btn-outlined md-btn-sm" type="button" onclick="document.getElementById('card-cliente-edit').style.display='none'">Cancelar</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">list</span>
+          Lista de clientes
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>Nombre</th><th>Apellido</th><th>Cédula</th><th>Correo</th><th>Teléfono</th><th>Acciones</th></tr></thead>
+            <tbody id="tbl-cliente-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         VEHICULOS
+    ══════════════════════════════════════════ -->
+    <section class="cea-section" id="sec-vehiculos">
+      <div class="section-title">
+        <span class="material-symbols-rounded">directions_car</span>
+        Vehículos
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">add_circle</span>
+          Registrar vehículo
+        </div>
+        <form id="form-vehiculo" onsubmit="crearVehiculo(event)">
+          <div class="row g-3">
+            <div class="col-md-2"><label class="form-label">Placa</label><input class="form-control" id="vPlaca" required placeholder="ABC-123"></div>
+            <div class="col-md-2"><label class="form-label">Marca</label><input class="form-control" id="vMarca" placeholder="Marca"></div>
+            <div class="col-md-2"><label class="form-label">Modelo</label><input class="form-control" id="vModelo" placeholder="Año/modelo"></div>
+            <div class="col-md-2"><label class="form-label">Tipo</label>
+              <select class="form-select" id="vTipo">
+                <option value="carro">Carro</option>
+                <option value="moto">Moto</option>
+              </select>
+            </div>
+            <div class="col-md-2"><label class="form-label">Nivel</label><input class="form-control" id="vNivel" placeholder="B1, A2…"></div>
+            <div class="col-md-2"><label class="form-label">Disponibilidad</label>
+              <select class="form-select" id="vDisp">
+                <option value="disponible">Disponible</option>
+                <option value="noDisponible">No Disponible</option>
+              </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button class="btn-cea w-100" type="submit">
+                <span class="material-symbols-rounded" style="font-size:18px">add</span>
+                Crear
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <div class="edit-panel" id="card-vehiculo-edit">
+          <h6>Editar vehículo</h6>
+          <form onsubmit="actualizarVehiculo(event)">
+            <input type="hidden" id="vEditId">
+            <div class="row g-3">
+              <div class="col-md-2"><label class="form-label">Placa</label><input class="form-control" id="vEditPlaca"></div>
+              <div class="col-md-2"><label class="form-label">Marca</label><input class="form-control" id="vEditMarca"></div>
+              <div class="col-md-2"><label class="form-label">Modelo</label><input class="form-control" id="vEditModelo"></div>
+              <div class="col-md-2"><label class="form-label">Tipo</label>
+                <select class="form-select" id="vEditTipo">
+                  <option value="carro">Carro</option>
+                  <option value="moto">Moto</option>
+                </select>
+              </div>
+              <div class="col-md-2"><label class="form-label">Nivel</label><input class="form-control" id="vEditNivel"></div>
+              <div class="col-md-2"><label class="form-label">Disponibilidad</label>
+                <select class="form-select" id="vEditDisp">
+                  <option value="disponible">Disponible</option>
+                  <option value="noDisponible">No Disponible</option>
+                </select>
+              </div>
+              <div class="col-md-2 d-flex align-items-end gap-2">
+                <button class="btn-cea" type="submit">Guardar</button>
+                <button class="md-btn md-btn-outlined md-btn-sm" type="button" onclick="document.getElementById('card-vehiculo-edit').style.display='none'">Cancelar</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">list</span>
+          Lista de vehículos
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>Placa</th><th>Marca</th><th>Modelo</th><th>Tipo</th><th>Nivel</th><th>Disponibilidad</th><th>Acciones</th></tr></thead>
+            <tbody id="tbl-vehiculo-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         CATEGORIAS
+    ══════════════════════════════════════════ -->
+    <section class="cea-section" id="sec-categorias">
+      <div class="section-title">
+        <span class="material-symbols-rounded">label</span>
+        Categorías
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">add_circle</span>
+          Registrar categoría
+        </div>
+        <form id="form-categoria" onsubmit="crearCategoria(event)">
+          <div class="row g-3">
+            <div class="col-md-3"><label class="form-label">Nombre</label><input class="form-control" id="catNombre" placeholder="A2, B1…" required></div>
+            <div class="col-md-3"><label class="form-label">Precio</label><input class="form-control" type="number" id="catPrecio" min="0" placeholder="0"></div>
+            <div class="col-md-2"><label class="form-label">Horas teóricas</label><input class="form-control" type="number" id="catHT" min="0" placeholder="0"></div>
+            <div class="col-md-2"><label class="form-label">Horas prácticas</label><input class="form-control" type="number" id="catHP" min="0" placeholder="0"></div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button class="btn-cea w-100" type="submit">
+                <span class="material-symbols-rounded" style="font-size:18px">add</span>
+                Crear
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <div class="edit-panel" id="card-categoria-edit">
+          <h6>Editar categoría</h6>
+          <form onsubmit="actualizarCategoria(event)">
+            <input type="hidden" id="catEditId">
+            <div class="row g-3">
+              <div class="col-md-3"><label class="form-label">Nombre</label><input class="form-control" id="catEditNombre"></div>
+              <div class="col-md-3"><label class="form-label">Precio</label><input class="form-control" type="number" id="catEditPrecio"></div>
+              <div class="col-md-2"><label class="form-label">Horas teóricas</label><input class="form-control" type="number" id="catEditHT"></div>
+              <div class="col-md-2"><label class="form-label">Horas prácticas</label><input class="form-control" type="number" id="catEditHP"></div>
+              <div class="col-md-2 d-flex align-items-end gap-2">
+                <button class="btn-cea" type="submit">Guardar</button>
+                <button class="md-btn md-btn-outlined md-btn-sm" type="button" onclick="document.getElementById('card-categoria-edit').style.display='none'">Cancelar</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">list</span>
+          Lista de categorías
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>Nombre</th><th>Precio</th><th>Horas teóricas</th><th>Horas prácticas</th><th>Acciones</th></tr></thead>
+            <tbody id="tbl-categoria-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         MATRICULADOS
+    ══════════════════════════════════════════ -->
+    <section class="cea-section" id="sec-matriculados">
+      <div class="section-title">
+        <span class="material-symbols-rounded">assignment_ind</span>
+        Matriculados
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">person_add</span>
+          Registrar matriculado
+        </div>
+        <form id="form-matriculado" onsubmit="crearMatriculado(event)">
+          <div class="row g-3">
+            <div class="col-md-3"><label class="form-label">Cliente</label><select class="form-select" id="mClienteCrear"><option value="">-- Cargando... --</option></select></div>
+            <div class="col-md-3"><label class="form-label">Categoría</label><select class="form-select" id="mCatCrear"><option value="">-- Cargando... --</option></select></div>
+            <div class="col-md-2"><label class="form-label">Fecha inicio</label><input class="form-control" type="date" id="mFechaInicio"></div>
+            <div class="col-md-2"><label class="form-label">Fecha fin</label><input class="form-control" type="date" id="mFechaFin"></div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button class="btn-cea w-100" type="submit">
+                <span class="material-symbols-rounded" style="font-size:18px">add</span>
+                Crear
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <div class="edit-panel" id="card-matriculado-edit">
+          <h6>Editar matriculado</h6>
+          <form onsubmit="actualizarMatriculado(event)">
+            <input type="hidden" id="mEditId">
+            <div class="row g-3">
+              <div class="col-md-3"><label class="form-label">Cliente</label><select class="form-select" id="mEditCliente"></select></div>
+              <div class="col-md-3"><label class="form-label">Categoría</label><select class="form-select" id="mEditCat"></select></div>
+              <div class="col-md-2"><label class="form-label">Fecha inicio</label><input class="form-control" type="date" id="mEditFechaInicio"></div>
+              <div class="col-md-2"><label class="form-label">Fecha fin</label><input class="form-control" type="date" id="mEditFechaFin"></div>
+              <div class="col-md-2 d-flex align-items-end gap-2">
+                <button class="btn-cea" type="submit">Guardar</button>
+                <button class="md-btn md-btn-outlined md-btn-sm" type="button" onclick="document.getElementById('card-matriculado-edit').style.display='none'">Cancelar</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">list</span>
+          Lista de matriculados
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>Cliente</th><th>Categoría</th><th>Inicio</th><th>Fin</th><th>Acciones</th></tr></thead>
+            <tbody id="tbl-matriculado-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         CLASE PRACTICA
+    ══════════════════════════════════════════ -->
+    <section class="cea-section" id="sec-cpractica">
+      <div class="section-title">
+        <span class="material-symbols-rounded">route</span>
+        Clases Prácticas
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">add_circle</span>
+          Registrar clase práctica
+        </div>
+        <form id="form-cpractica" onsubmit="crearClasePractica(event)">
+          <div class="row g-3">
+            <div class="col-md-4"><label class="form-label">Instructor</label><select class="form-select" id="cpIns"><option value="">-- Cargando... --</option></select></div>
+            <div class="col-md-4"><label class="form-label">Matriculado</label><select class="form-select" id="cpMat"><option value="">-- Cargando... --</option></select></div>
+            <div class="col-md-4"><label class="form-label">Vehículo</label><select class="form-select" id="cpVeh"><option value="">-- Cargando... --</option></select></div>
+            <div class="col-md-4"><label class="form-label">Descripción</label>
+              <select class="form-select" id="cpDesc">
+                <option value="carretera">Carretera</option>
+                <option value="ciudad">Ciudad</option>
+                <option value="parqueo">Parqueo</option>
+                <option value="maniobras">Maniobras</option>
+              </select>
+            </div>
+            <div class="col-md-3"><label class="form-label">Fecha</label><input class="form-control" type="date" id="cpFecha"></div>
+            <div class="col-md-3"><label class="form-label">Hora</label><input class="form-control" type="time" id="cpHora" min="06:00" max="19:00" step="3600"></div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button class="btn-cea w-100" type="submit">
+                <span class="material-symbols-rounded" style="font-size:18px">add</span>
+                Crear
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">list</span>
+          Lista de clases prácticas
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>Instructor</th><th>Matriculado</th><th>Vehículo</th><th>Descripción</th><th>Fecha / Hora</th><th>Acciones</th></tr></thead>
+            <tbody id="tbl-cpractica-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         CLASE TEORICA
+    ══════════════════════════════════════════ -->
+    <section class="cea-section" id="sec-cteorica">
+      <div class="section-title">
+        <span class="material-symbols-rounded">menu_book</span>
+        Clases Teóricas
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">add_circle</span>
+          Registrar clase teórica
+        </div>
+        <form id="form-cteorica" onsubmit="crearClaseTeorica(event)">
+          <div class="row g-3">
+            <div class="col-md-4"><label class="form-label">Instructor</label><select class="form-select" id="ctIns"><option value="">-- Cargando... --</option></select></div>
+            <div class="col-md-4"><label class="form-label">Matriculado</label><select class="form-select" id="ctMat"><option value="">-- Cargando... --</option></select></div>
+            <div class="col-md-4"><label class="form-label">Descripción</label>
+              <select class="form-select" id="ctDesc">
+                <option value="normatividad vial">Normatividad Vial</option>
+                <option value="senalizacion">Señalización</option>
+                <option value="mecanica basica">Mecánica Básica</option>
+              </select>
+            </div>
+            <div class="col-md-3"><label class="form-label">Fecha</label><input class="form-control" type="date" id="ctFecha"></div>
+            <div class="col-md-3"><label class="form-label">Hora</label><input class="form-control" type="time" id="ctHora" min="06:00" max="19:00" step="3600"></div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button class="btn-cea w-100" type="submit">
+                <span class="material-symbols-rounded" style="font-size:18px">add</span>
+                Crear
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">list</span>
+          Lista de clases teóricas
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>Instructor</th><th>Matriculado</th><th>Descripción</th><th>Fecha / Hora</th><th>Acciones</th></tr></thead>
+            <tbody id="tbl-cteorica-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         EXAMEN PRACTICO
+    ══════════════════════════════════════════ -->
+    <section class="cea-section" id="sec-epractico">
+      <div class="section-title">
+        <span class="material-symbols-rounded">flag</span>
+        Exámenes Prácticos
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">add_circle</span>
+          Registrar examen práctico
+        </div>
+        <form id="form-epractico" onsubmit="crearExamenPractico(event)">
+          <div class="row g-3">
+            <div class="col-md-3"><label class="form-label">Matriculado</label><select class="form-select" id="epMat"><option value="">-- Cargando... --</option></select></div>
+            <div class="col-md-3"><label class="form-label">Instructor</label><select class="form-select" id="epIns"><option value="">-- Cargando... --</option></select></div>
+            <div class="col-md-3"><label class="form-label">Vehículo</label><select class="form-select" id="epVeh"><option value="">-- Cargando... --</option></select></div>
+            <div class="col-md-3"><label class="form-label">Resultado</label>
+              <select class="form-select" id="epResultado">
+                <option value="Aprobado">Aprobado</option>
+                <option value="No Aprobado">No Aprobado</option>
+              </select>
+            </div>
+            <div class="col-md-3"><label class="form-label">Fecha</label><input class="form-control" type="date" id="epFecha"></div>
+            <div class="col-md-3"><label class="form-label">Hora</label><input class="form-control" type="time" id="epHora" min="06:00" max="19:00" step="3600"></div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button class="btn-cea w-100" type="submit">
+                <span class="material-symbols-rounded" style="font-size:18px">add</span>
+                Crear
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">list</span>
+          Lista de exámenes prácticos
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>Matriculado</th><th>Instructor</th><th>Vehículo</th><th>Resultado</th><th>Fecha / Hora</th><th>Acciones</th></tr></thead>
+            <tbody id="tbl-epractico-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         EXAMEN TEORICO
+    ══════════════════════════════════════════ -->
+    <section class="cea-section" id="sec-eteorico">
+      <div class="section-title">
+        <span class="material-symbols-rounded">quiz</span>
+        Exámenes Teóricos
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">add_circle</span>
+          Registrar examen teórico
+        </div>
+        <form id="form-eteorico" onsubmit="crearExamenTeorico(event)">
+          <div class="row g-3">
+            <div class="col-md-4"><label class="form-label">Matriculado</label><select class="form-select" id="etMat"><option value="">-- Cargando... --</option></select></div>
+            <div class="col-md-3"><label class="form-label">Resultado</label>
+              <select class="form-select" id="etResultado">
+                <option value="Aprobado">Aprobado</option>
+                <option value="No Aprobado">No Aprobado</option>
+              </select>
+            </div>
+            <div class="col-md-2"><label class="form-label">Fecha</label><input class="form-control" type="date" id="etFecha"></div>
+            <div class="col-md-2"><label class="form-label">Hora</label><input class="form-control" type="time" id="etHora" min="06:00" max="19:00" step="3600"></div>
+            <div class="col-md-1 d-flex align-items-end">
+              <button class="btn-cea w-100" type="submit">
+                <span class="material-symbols-rounded" style="font-size:18px">add</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">list</span>
+          Lista de exámenes teóricos
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>Matriculado</th><th>Resultado</th><th>Fecha / Hora</th><th>Acciones</th></tr></thead>
+            <tbody id="tbl-eteorico-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         REPORTES
+    ══════════════════════════════════════════ -->
+    <section class="cea-section" id="sec-reportes">
+      <div class="section-title">
+        <span class="material-symbols-rounded">picture_as_pdf</span>
+        Reportes PDF
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-5">
+          <div class="cea-card" style="text-align:center">
+            <div class="reporte-icon-box">
+              <span class="material-symbols-rounded" style="font-size:32px">bar_chart</span>
+            </div>
+            <div class="cea-card-title" style="justify-content:center">Informe Gerencial</div>
+            <p class="small text-muted" style="margin-bottom:20px">KPIs operativos, calidad académica e ingresos estimados</p>
+            <button class="btn-cea" onclick="verReporteGerencia()" style="margin:0 auto">
+              <span class="material-symbols-rounded" style="font-size:18px">download</span>
+              Descargar PDF
+            </button>
+          </div>
+        </div>
+        <div class="col-md-7">
+          <div class="cea-card">
+            <div class="cea-card-title">
+              <span class="material-symbols-rounded" style="font-size:16px">calendar_month</span>
+              Agenda del estudiante
+            </div>
+            <p class="small text-muted" style="margin-bottom:16px">Calendario completo de clases y exámenes de un matriculado</p>
+            <div class="row g-2">
+              <div class="col-md-8">
+                <select class="form-select" id="reporteMatriculadoId">
+                  <option value="">-- Selecciona matriculado --</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <button class="btn-cea w-100" onclick="verCalendarioMatriculado()">
+                  <span class="material-symbols-rounded" style="font-size:18px">calendar_month</span>
+                  Ver PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         PROGRESO DEL ESTUDIANTE
+    ══════════════════════════════════════════ -->
+    <section class="cea-section" id="sec-progreso">
+      <div class="section-title">
+        <span class="material-symbols-rounded">timeline</span>
+        Progreso del Estudiante
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px">person_search</span>
+          Selecciona un estudiante matriculado
+        </div>
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label">Estudiante</label>
+            <select class="form-select" id="progresoSelect">
+              <option value="">-- Cargando estudiantes... --</option>
+            </select>
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <button class="btn-cea w-100" onclick="verProgreso()">
+              <span class="material-symbols-rounded" style="font-size:18px">search</span>
+              Ver progreso
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="progreso-resultado" style="display:none"></div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         CONSULTAS
+    ══════════════════════════════════════════ -->
+    <section class="cea-section" id="sec-consultas">
+      <div class="section-title">
+        <span class="material-symbols-rounded">manage_search</span>
+        Consultas
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px;color:#1B5E20">check_circle</span>
+          Exámenes prácticos aprobados
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>Matriculado ID</th><th>Instructor</th><th>Vehículo</th><th>Resultado</th><th>Fecha</th></tr></thead>
+            <tbody id="tbl-aprobados-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="cea-card">
+        <div class="cea-card-title">
+          <span class="material-symbols-rounded" style="font-size:16px;color:var(--md-error)">cancel</span>
+          Exámenes prácticos reprobados
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead><tr><th>Matriculado ID</th><th>Instructor</th><th>Vehículo</th><th>Resultado</th><th>Fecha</th></tr></thead>
+            <tbody id="tbl-reprobados-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- Toast container -->
+<div id="toastWrap"></div>
+
+<script>
+// ── Mostrar usuario ────────────────────────────────────────────────
+(function() {
+  try {
+    var u = JSON.parse(localStorage.getItem('cea_admin_user') || '{}');
+    var name = u.username || 'Admin';
+    document.getElementById('topbar-user').textContent = name;
+    document.getElementById('topbar-avatar').textContent = name.charAt(0).toUpperCase();
+  } catch(_) {}
+})();
+
+// ── Notificaciones (snackbar MD3) ──────────────────────────────────
+window.CEANotify = function(msg, type) {
+  var wrap = document.getElementById('toastWrap');
+  var t = document.createElement('div');
+  t.className = 'cea-toast ' + (type || 'info');
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(function() { t.remove(); }, 3500);
+};
+
+// ── Títulos de sección ─────────────────────────────────────────────
+var TITLES = {
+  dashboard: 'Dashboard', instructores: 'Instructores', clientes: 'Clientes',
+  vehiculos: 'Vehículos', categorias: 'Categorías', matriculados: 'Matriculados',
+  cpractica: 'Clases Prácticas', cteorica: 'Clases Teóricas',
+  epractico: 'Exámenes Prácticos', eteorico: 'Exámenes Teóricos',
+  reportes: 'Reportes PDF', consultas: 'Consultas'
+};
+
+// ── Mobile sidebar ─────────────────────────────────────────────────
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var ov = document.getElementById('sidebar-overlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+
+// ── Section switching (extends openSection in admin.js) ────────────
+var _origOpen;
+window.addEventListener('DOMContentLoaded', function() {
+  // Wrap openSection to update topbar title
+  _origOpen = window.openSection;
+  window.openSection = function(id) {
+    _origOpen(id);
+    var el = document.getElementById('topbar-title');
+    if (el) el.textContent = TITLES[id] || 'Panel';
+    closeSidebar();
+  };
+});
+</script>
+
+<!-- ── Modal de confirmación ──────────────────────────── -->
+<div id="cea-modal-overlay" class="cea-modal-overlay">
+  <div class="cea-modal">
+    <div class="cea-modal-icon-wrap">
+      <span class="material-symbols-rounded cea-modal-icon">delete</span>
+    </div>
+    <div class="cea-modal-title" id="cea-modal-title">¿Eliminar registro?</div>
+    <div class="cea-modal-msg"   id="cea-modal-msg">Esta acción no se puede deshacer.</div>
+    <div class="cea-modal-actions">
+      <button class="md-btn md-btn-outlined" id="cea-modal-cancel">Cancelar</button>
+      <button class="md-btn md-btn-error"    id="cea-modal-ok">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

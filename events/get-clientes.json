@@ -1,0 +1,9 @@
+{
+  "httpMethod": "GET",
+  "path": "/cliente",
+  "pathParameters": null,
+  "queryStringParameters": null,
+  "headers": { "Content-Type": "application/json" },
+  "body": null,
+  "isBase64Encoded": false
+}
